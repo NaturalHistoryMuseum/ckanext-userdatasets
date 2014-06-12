@@ -31,9 +31,10 @@ class UserDatasetsPlugin(p.SingletonPlugin):
             uds_module = importlib.import_module('ckanext.userdatasets.logic.auth.' + action)
             for atype in ['package', 'resource', 'resource_view']:
                 fn_name = atype + '_' + action
-                default_fn = getattr(default_module, fn_name)
-                uds_fn = getattr(uds_module, fn_name)
-                auth_functions[fn_name] = partial(uds_fn, default_fn)
+                if hasattr(default_module, fn_name) and hasattr(uds_module, fn_name):
+                    default_fn = getattr(default_module, fn_name)
+                    uds_fn = getattr(uds_module, fn_name)
+                    auth_functions[fn_name] = partial(uds_fn, default_fn)
 
         return auth_functions
 
