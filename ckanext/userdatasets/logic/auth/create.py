@@ -1,5 +1,5 @@
 from ckan.logic.auth import get_package_object
-from ckan.new_authz import users_role_for_group_or_org
+from ckan.new_authz import users_role_for_group_or_org, has_user_permission_for_some_org
 from ckanext.userdatasets.logic.auth.auth import user_owns_package_as_member
 
 def package_create(fb, context, data_dict):
@@ -12,8 +12,8 @@ def package_create(fb, context, data_dict):
         # If there is no organization, then this should return success if the user can create datasets for *some*
         # organisation (see the ckan implementation), so either if anonymous packages are allowed or if we have
         # member status in any organization.
-        # FIXME: Implement this!
-        pass
+        if has_user_permission_for_some_org(user.name, 'read'):
+            return {'success': True}
 
     return fb(context, data_dict)
 
