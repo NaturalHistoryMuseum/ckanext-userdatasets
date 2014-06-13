@@ -17,13 +17,13 @@ Notes:
   package/resource update/create/delete authorization functions, and package_create/update actions.
   
 **Warning: This plugin modifies CKAN's permission system. The current implementation cannot be considered fully
- safe and should only be used AT YOUR OWN RISK in a trusted environment**
+ safe and should only be used AT YOUR OWN RISK in a trusted environment. Ensure you run the tests with your plugins
+ enabled.**
 
 Compatibility
 -------------
 
 - v0.1 for CKAN 2.2
-
 
 Configuration
 -------------
@@ -49,3 +49,14 @@ Usage
 
 
 2. Add `userdatasets` to `ckan.plugins` in your configuration file. 
+
+Testing
+-------
+
+The plugin contains both unit tests and functional tests. From the source directory, run:
+
+```sh
+    nosetests --ckan --with-pylons=test.ini ckanext/userdatasets/tests
+```
+
+This assumes that ckan's test.ini is in ../ckan/test.ini. Adjust accordingly.
