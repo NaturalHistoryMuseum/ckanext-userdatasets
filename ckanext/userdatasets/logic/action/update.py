@@ -12,7 +12,7 @@ from ckanext.userdatasets.logic.validators import owner_org_validator as uds_oov
 
 log = logging.getLogger(__name__)
 
-def package_update(fb, context, data_dict):
+def package_update(context, data_dict):
     model = context['model']
     user = context['user']
     name_or_id = data_dict.get("id") or data_dict['name']

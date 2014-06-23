@@ -104,9 +104,10 @@ class TestAuthActionsUnit:
             mock_users_role.return_value = t['role']
             assert_equal(user_owns_package_as_member(t['user'], t['package']), t['result'])
 
+    @patch('ckanext.userdatasets.logic.auth.create.get_default_auth')
     @patch('ckanext.userdatasets.logic.auth.create.users_role_for_group_or_org')
     @patch('ckanext.userdatasets.logic.auth.create.has_user_permission_for_some_org')
-    def test_package_create(self, mock_has_perm, mock_users_role):
+    def test_package_create(self, mock_has_perm, mock_users_role, mock_default_auth):
         """Test ckanext.userdatasets.logic.auth.create.package_create.
 
         Ensure all the possible combination of parameters always lead to the expected
@@ -159,13 +160,14 @@ class TestAuthActionsUnit:
         for t in tests:
             mock_users_role.return_value = t['role']
             mock_has_perm.return_value = t['has_perm']
-            fb = Mock(return_value='fallback')
-            assert_equal(package_create(fb, t['context'], t['data_dict']), t['result'])
+            mock_default_auth.return_value = Mock(return_value='fallback')
+            assert_equal(package_create(t['context'], t['data_dict']), t['result'])
 
+    @patch('ckanext.userdatasets.logic.auth.create.get_default_auth')
     @patch('ckanext.userdatasets.logic.auth.create.user_is_member_of_package_org')
     @patch('ckanext.userdatasets.logic.auth.create.user_owns_package_as_member')
     @patch('ckanext.userdatasets.logic.auth.create.get_package_object')
-    def test_resource_create(self, mock_get_package, mock_user_owns, mock_user_is_member):
+    def test_resource_create(self, mock_get_package, mock_user_owns, mock_user_is_member, mock_default_auth):
         """Test ckanext.userdatasets.logic.auth.create.resource_create.
 
         Ensure all routes are tested.
@@ -188,16 +190,17 @@ class TestAuthActionsUnit:
             },
         ]
         mock_get_package.return_value = 1
-        fb = Mock(return_value='fallback')
+        mock_default_auth.return_value = Mock(return_value='fallback')
         for t in tests:
             mock_user_owns.return_value = t['user_owns']
             mock_user_is_member.return_value = t['user_is_member']
-            assert_equal(resource_create(fb, {'auth_user_obj': 1}, {}), t['result'])
+            assert_equal(resource_create({'auth_user_obj': 1}, {}), t['result'])
 
+    @patch('ckanext.userdatasets.logic.auth.create.get_default_auth')
     @patch('ckanext.userdatasets.logic.auth.create.user_is_member_of_package_org')
     @patch('ckanext.userdatasets.logic.auth.create.user_owns_package_as_member')
     @patch('ckanext.userdatasets.logic.auth.create.get_resource_object')
-    def test_resource_view_create(self, mock_get_resource, mock_user_owns, mock_user_is_member):
+    def test_resource_view_create(self, mock_get_resource, mock_user_owns, mock_user_is_member, mock_default_auth):
         """Test ckanext.userdatasets.logic.auth.create.resource_view_create.
 
         Ensure all routes are tested.
@@ -223,30 +226,32 @@ class TestAuthActionsUnit:
             },
         ]
         mock_get_resource.return_value = SMock(resource_group=SMock(package=1))
-        fb = Mock(return_value='fallback')
+        mock_default_auth.return_value = Mock(return_value='fallback')
         for t in tests:
             mock_user_owns.return_value = t['user_owns']
             mock_user_is_member.return_value = t['user_is_member']
-            assert_equal(resource_view_create(fb, {'auth_user_obj': 1}, {'resource_id':1}), t['result'])
+            assert_equal(resource_view_create({'auth_user_obj': 1}, {'resource_id':1}), t['result'])
 
+    @patch('ckanext.userdatasets.logic.auth.update.get_default_auth')
     @patch('ckanext.userdatasets.logic.auth.update.user_owns_package_as_member')
     @patch('ckanext.userdatasets.logic.auth.update.get_package_object')
-    def test_package_update(self, mock_get_package, mock_user_owns):
+    def test_package_update(self, mock_get_package, mock_user_owns, mock_default_auth):
         """Test ckanext.userdatasets.logic.auth.update.package_update.
 
         Ensure both success and failure routes are tested.
         """
         mock_get_package.return_value = 1
         mock_user_owns.return_value = True
-        assert_equal(package_update(None, {'auth_user_obj': 1}, {}), {'success': True})
+        assert_equal(package_update({'auth_user_obj': 1}, {}), {'success': True})
         mock_user_owns.return_value = False
-        fb = Mock(return_value='fallback')
-        assert_equal(package_update(fb, {'auth_user_obj': 1}, {}), 'fallback')
+        mock_default_auth.return_value = Mock(return_value='fallback')
+        assert_equal(package_update({'auth_user_obj': 1}, {}), 'fallback')
 
+    @patch('ckanext.userdatasets.logic.auth.update.get_default_auth')
     @patch('ckanext.userdatasets.logic.auth.update.user_is_member_of_package_org')
     @patch('ckanext.userdatasets.logic.auth.update.user_owns_package_as_member')
     @patch('ckanext.userdatasets.logic.auth.update.get_resource_object')
-    def test_resource_update(self, mock_get_resource, mock_user_owns, mock_user_is_member):
+    def test_resource_update(self, mock_get_resource, mock_user_owns, mock_user_is_member, mock_default_auth):
         """Test ckanext.userdatasets.logic.auth.create.resource_update.
 
         Ensure all routes are tested.
@@ -269,17 +274,19 @@ class TestAuthActionsUnit:
             },
         ]
         mock_get_resource.return_value = SMock(resource_group=SMock(package=1))
-        fb = Mock(return_value='fallback')
+        mock_default_auth.return_value = Mock(return_value='fallback')
         for t in tests:
             mock_user_owns.return_value = t['user_owns']
             mock_user_is_member.return_value = t['user_is_member']
-            assert_equal(resource_update(fb, {'auth_user_obj': 1}, {}), t['result'])
+            assert_equal(resource_update({'auth_user_obj': 1}, {}), t['result'])
 
+    @patch('ckanext.userdatasets.logic.auth.update.get_default_auth')
     @patch('ckanext.userdatasets.logic.auth.update.user_is_member_of_package_org')
     @patch('ckanext.userdatasets.logic.auth.update.user_owns_package_as_member')
     @patch('ckanext.userdatasets.logic.auth.update.get_resource_object')
     @patch('ckanext.userdatasets.logic.auth.update.get_resource_view_object')
-    def test_resource_view_update(self, mock_get_resource_view, mock_get_resource, mock_user_owns, mock_user_is_member):
+    def test_resource_view_update(self, mock_get_resource_view, mock_get_resource, mock_user_owns,
+                                  mock_user_is_member, mock_default_auth):
         """Test ckanext.userdatasets.logic.auth.create.resource_view_update.
 
         Ensure all routes are tested.
@@ -306,30 +313,32 @@ class TestAuthActionsUnit:
         ]
         mock_get_resource_view.return_value = SMock(resource_id=1)
         mock_get_resource.return_value = SMock(resource_group=SMock(package=1))
-        fb = Mock(return_value='fallback')
+        mock_default_auth.return_value = Mock(return_value='fallback')
         for t in tests:
             mock_user_owns.return_value = t['user_owns']
             mock_user_is_member.return_value = t['user_is_member']
-            assert_equal(resource_view_update(fb, {'auth_user_obj': 1}, {'resource_id':1}), t['result'])
+            assert_equal(resource_view_update({'auth_user_obj': 1}, {'resource_id':1}), t['result'])
 
+    @patch('ckanext.userdatasets.logic.auth.delete.get_default_auth')
     @patch('ckanext.userdatasets.logic.auth.delete.user_owns_package_as_member')
     @patch('ckanext.userdatasets.logic.auth.delete.get_package_object')
-    def test_package_delete(self, mock_get_package, mock_user_owns):
+    def test_package_delete(self, mock_get_package, mock_user_owns, mock_default_auth):
         """Test ckanext.userdatasets.logic.auth.delete.package_delete.
 
         Ensure both success and failure routes are tested.
         """
         mock_get_package.return_value = 1
         mock_user_owns.return_value = True
-        assert_equal(package_delete(None, {'auth_user_obj': 1}, {}), {'success': True})
+        assert_equal(package_delete({'auth_user_obj': 1}, {}), {'success': True})
         mock_user_owns.return_value = False
-        fb = Mock(return_value='fallback')
-        assert_equal(package_delete(fb, {'auth_user_obj': 1}, {}), 'fallback')
+        mock_default_auth.return_value = Mock(return_value='fallback')
+        assert_equal(package_delete({'auth_user_obj': 1}, {}), 'fallback')
 
+    @patch('ckanext.userdatasets.logic.auth.delete.get_default_auth')
     @patch('ckanext.userdatasets.logic.auth.delete.user_is_member_of_package_org')
     @patch('ckanext.userdatasets.logic.auth.delete.user_owns_package_as_member')
     @patch('ckanext.userdatasets.logic.auth.delete.get_resource_object')
-    def test_resource_delete(self, mock_get_resource, mock_user_owns, mock_user_is_member):
+    def test_resource_delete(self, mock_get_resource, mock_user_owns, mock_user_is_member, mock_default_auth):
         """Test ckanext.userdatasets.logic.auth.create.resource_delete.
 
         Ensure all routes are tested.
@@ -352,17 +361,19 @@ class TestAuthActionsUnit:
             },
         ]
         mock_get_resource.return_value = SMock(resource_group=SMock(package=1))
-        fb = Mock(return_value='fallback')
+        mock_default_auth.return_value = Mock(return_value='fallback')
         for t in tests:
             mock_user_owns.return_value = t['user_owns']
             mock_user_is_member.return_value = t['user_is_member']
-            assert_equal(resource_delete(fb, {'auth_user_obj': 1}, {}), t['result'])
+            assert_equal(resource_delete({'auth_user_obj': 1}, {}), t['result'])
 
+    @patch('ckanext.userdatasets.logic.auth.delete.get_default_auth')
     @patch('ckanext.userdatasets.logic.auth.delete.user_is_member_of_package_org')
     @patch('ckanext.userdatasets.logic.auth.delete.user_owns_package_as_member')
     @patch('ckanext.userdatasets.logic.auth.delete.get_resource_object')
     @patch('ckanext.userdatasets.logic.auth.delete.get_resource_view_object')
-    def test_resource_view_delete(self, mock_get_resource_view, mock_get_resource, mock_user_owns, mock_user_is_member):
+    def test_resource_view_delete(self, mock_get_resource_view, mock_get_resource, mock_user_owns,
+                                  mock_user_is_member, mock_default_auth):
         """Test ckanext.userdatasets.logic.auth.create.resource_view_delete.
 
         Ensure all routes are tested.
@@ -389,8 +400,8 @@ class TestAuthActionsUnit:
         ]
         mock_get_resource_view.return_value = SMock(resource_id=1)
         mock_get_resource.return_value = SMock(resource_group=SMock(package=1))
-        fb = Mock(return_value='fallback')
+        mock_default_auth.return_value = Mock(return_value='fallback')
         for t in tests:
             mock_user_owns.return_value = t['user_owns']
             mock_user_is_member.return_value = t['user_is_member']
-            assert_equal(resource_view_delete(fb, {'auth_user_obj': 1}, {'resource_id':1}), t['result'])
+            assert_equal(resource_view_delete({'auth_user_obj': 1}, {'resource_id':1}), t['result'])
