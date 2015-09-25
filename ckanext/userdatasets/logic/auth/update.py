@@ -17,7 +17,7 @@ def package_update(context, data_dict):
 def resource_update(context, data_dict):
     user = context['auth_user_obj']
     resource = get_resource_object(context, data_dict)
-    package = resource.resource_group.package
+    package = resource.package
     if user_owns_package_as_member(user, package):
         return {'success': True}
     elif user_is_member_of_package_org(user, package):
@@ -31,9 +31,9 @@ def resource_view_update(context, data_dict):
     user = context['auth_user_obj']
     resource_view = get_resource_view_object(context, data_dict)
     resource = get_resource_object(context, {'id': resource_view.resource_id})
-    if user_owns_package_as_member(user, resource.resource_group.package):
+    if user_owns_package_as_member(user, resource.package):
         return {'success': True}
-    elif user_is_member_of_package_org(user, resource.resource_group.package):
+    elif user_is_member_of_package_org(user, resource.package):
         return {'success': False}
 
     fallback = get_default_auth('update', 'resource_view_update')
