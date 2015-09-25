@@ -225,7 +225,7 @@ class TestAuthActionsUnit:
                 'result': 'fallback'
             },
         ]
-        mock_get_resource.return_value = SMock(resource_group=SMock(package=1))
+        mock_get_resource.return_value = SMock(package=1)
         mock_default_auth.return_value = Mock(return_value='fallback')
         for t in tests:
             mock_user_owns.return_value = t['user_owns']
@@ -273,7 +273,7 @@ class TestAuthActionsUnit:
                 'result': 'fallback'
             },
         ]
-        mock_get_resource.return_value = SMock(resource_group=SMock(package=1))
+        mock_get_resource.return_value = SMock(package=1)
         mock_default_auth.return_value = Mock(return_value='fallback')
         for t in tests:
             mock_user_owns.return_value = t['user_owns']
@@ -312,7 +312,7 @@ class TestAuthActionsUnit:
             },
         ]
         mock_get_resource_view.return_value = SMock(resource_id=1)
-        mock_get_resource.return_value = SMock(resource_group=SMock(package=1))
+        mock_get_resource.return_value = SMock(package=1)
         mock_default_auth.return_value = Mock(return_value='fallback')
         for t in tests:
             mock_user_owns.return_value = t['user_owns']
@@ -360,7 +360,7 @@ class TestAuthActionsUnit:
                 'result': 'fallback'
             },
         ]
-        mock_get_resource.return_value = SMock(resource_group=SMock(package=1))
+        mock_get_resource.return_value = SMock(package=1)
         mock_default_auth.return_value = Mock(return_value='fallback')
         for t in tests:
             mock_user_owns.return_value = t['user_owns']
@@ -399,9 +399,10 @@ class TestAuthActionsUnit:
             },
         ]
         mock_get_resource_view.return_value = SMock(resource_id=1)
-        mock_get_resource.return_value = SMock(resource_group=SMock(package=1))
+        mock_get_resource.return_value = SMock(package=1)
         mock_default_auth.return_value = Mock(return_value='fallback')
         for t in tests:
             mock_user_owns.return_value = t['user_owns']
             mock_user_is_member.return_value = t['user_is_member']
             assert_equal(resource_view_delete({'auth_user_obj': 1}, {'resource_id':1}), t['result'])
+
