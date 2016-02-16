@@ -23,7 +23,12 @@ def package_create(context, data_dict):
 
 def resource_create(context, data_dict):
     user = context['auth_user_obj']
+    
+    # ckan.logic.auth._get_object() expects 'id', not 'package_id' as key
+    package_id = data_dict.get('package_id')
+    data_dict.update({'id': package_id})
     package = get_package_object(context, data_dict)
+    
     if user_owns_package_as_member(user, package):
         return {'success': True}
     elif user_is_member_of_package_org(user, package):
