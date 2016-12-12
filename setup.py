@@ -9,6 +9,9 @@ setup(
     url='https://github.com/NaturalHistoryMuseum/ckanext-userdatasets',
 	packages=find_packages(),
 	namespace_packages=['ckanext', 'ckanext.userdatasets'],
+	install_requires=[
+		'importlib',
+	],	
 	entry_points="""
         [ckan.plugins]
             userdatasets = ckanext.userdatasets.plugin:UserDatasetsPlugin
