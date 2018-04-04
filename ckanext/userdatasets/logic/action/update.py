@@ -4,19 +4,18 @@
 # This file is part of ckanext-userdatasets
 # Created by the Natural History Museum in London, UK
 
-import logging
 import datetime
-import ckan.plugins as plugins
-import ckan.lib.plugins as lib_plugins
+import logging
+
+from ckanext.userdatasets.logic.validators import owner_org_validator
+
 import ckan.lib.dictization.model_save as model_save
-
-from ckan.logic import check_access, get_action, ValidationError, NotFound
-from ckan.common import _
-
-from ckan.logic.validators import owner_org_validator as default_oov
-from ckanext.userdatasets.logic.validators import owner_org_validator as uds_oov
+import ckan.lib.plugins as lib_plugins
+from ckan.logic.validators import owner_org_validator as default_owner_org_validator
+from ckan.plugins import PluginImplementations, interfaces, toolkit
 
 log = logging.getLogger(__name__)
+
 
 def package_update(context, data_dict):
     '''
@@ -31,11 +30,11 @@ def package_update(context, data_dict):
 
     pkg = model.Package.get(name_or_id)
     if pkg is None:
-        raise NotFound(_(u'Package was not found.'))
+        raise toolkit.ObjectNotFound(toolkit._(u'Package was not found.'))
     context[u'package'] = pkg
     data_dict[u'id'] = pkg.id
 
-    check_access(u'package_update', context, data_dict)
+    toolkit.check_access(u'package_update', context, data_dict)
 
     # get the schema
     package_plugin = lib_plugins.lookup_package_plugin(pkg.type)
@@ -45,7 +44,9 @@ def package_update(context, data_dict):
         schema = package_plugin.update_package_schema()
     # We modify the schema here to replace owner_org_validator by our own
     if u'owner_org' in schema:
-        schema[u'owner_org'] = [uds_oov if f is default_oov else f for f in schema[u'owner_org']]
+        schema[u'owner_org'] = [
+            owner_org_validator if f is default_owner_org_validator else f for f in
+            schema[u'owner_org']]
 
     if u'api_version' not in context:
         # check_data_dict() is deprecated. If the package_plugin has a
@@ -69,18 +70,20 @@ def package_update(context, data_dict):
 
     if errors:
         model.Session.rollback()
-        raise ValidationError(errors)
+        raise toolkit.ValidationError(errors)
 
     rev = model.repo.new_revision()
     rev.author = user
     if u'message' in context:
         rev.message = context[u'message']
     else:
-        rev.message = _(u'REST API: Update object %s') % data.get(u'name')
+        rev.message = toolkit._(u'REST API: Update object %s') % data.get(u'name')
 
-    #avoid revisioning by updating directly
+    # avoid revisioning by updating directly
     model.Session.query(model.Package).filter_by(id=pkg.id).update(
-        {u'metadata_modified': datetime.datetime.utcnow()})
+        {
+            u'metadata_modified': datetime.datetime.utcnow()
+            })
     model.Session.refresh(pkg)
 
     pkg = model_save.package_dict_save(data, context)
@@ -88,11 +91,13 @@ def package_update(context, data_dict):
     context_org_update = context.copy()
     context_org_update[u'ignore_auth'] = True
     context_org_update[u'defer_commit'] = True
-    get_action(u'package_owner_org_update')(context_org_update,
-                                            {u'id': pkg.id,
-                                             u'organization_id': pkg.owner_org})
+    toolkit.get_action(u'package_owner_org_update')(context_org_update,
+                                                    {
+                                                        u'id': pkg.id,
+                                                        u'organization_id': pkg.owner_org
+                                                        })
 
-    for item in plugins.PluginImplementations(plugins.IPackageController):
+    for item in PluginImplementations(interfaces.IPackageController):
         item.edit(pkg)
 
         item.after_update(context, data)
@@ -110,6 +115,8 @@ def package_update(context, data_dict):
     # we could update the dataset so we should still be able to read it.
     context[u'ignore_auth'] = True
     output = data_dict[u'id'] if return_id_only \
-            else get_action(u'package_show')(context, {u'id': data_dict[u'id']})
+        else toolkit.get_action(u'package_show')(context, {
+        u'id': data_dict[u'id']
+        })
 
     return output

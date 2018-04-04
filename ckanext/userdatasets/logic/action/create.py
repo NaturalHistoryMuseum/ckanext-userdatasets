@@ -5,17 +5,16 @@
 # Created by the Natural History Museum in London, UK
 
 import logging
-import ckan.plugins as plugins
-import ckan.lib.plugins as lib_plugins
+
+from ckanext.userdatasets.logic.validators import owner_org_validator
+
 import ckan.lib.dictization.model_save as model_save
-
-from ckan.logic import check_access, get_action, ValidationError
-from ckan.common import _
-
-from ckan.logic.validators import owner_org_validator as default_oov
-from ckanext.userdatasets.logic.validators import owner_org_validator as uds_oov
+import ckan.lib.plugins as lib_plugins
+from ckan.logic.validators import owner_org_validator as default_owner_org_validator
+from ckan.plugins import PluginImplementations, interfaces, toolkit
 
 log = logging.getLogger(__name__)
+
 
 def package_create(context, data_dict):
     '''
@@ -35,9 +34,10 @@ def package_create(context, data_dict):
         schema = package_plugin.create_package_schema()
     # We modify the schema here to replace owner_org_validator by our own
     if u'owner_org' in schema:
-        schema[u'owner_org'] = [uds_oov if f is default_oov else f for f in schema[u'owner_org']]
+        schema[u'owner_org'] = [owner_org_validator if f is default_owner_org_validator
+                                else f for f in schema[u'owner_org']]
 
-    check_access(u'package_create', context, data_dict)
+    toolkit.check_access(u'package_create', context, data_dict)
 
     if u'api_version' not in context:
         # check_data_dict() is deprecated. If the package_plugin has a
@@ -60,14 +60,14 @@ def package_create(context, data_dict):
 
     if errors:
         model.Session.rollback()
-        raise ValidationError(errors)
+        raise toolkit.ValidationError(errors)
 
     rev = model.repo.new_revision()
     rev.author = user
     if u'message' in context:
         rev.message = context[u'message']
     else:
-        rev.message = _(u'REST API: Create object %s') % data.get(u'name')
+        rev.message = toolkit._(u'REST API: Create object %s') % data.get(u'name')
 
     admins = []
     if user:
@@ -86,11 +86,13 @@ def package_create(context, data_dict):
     context_org_update = context.copy()
     context_org_update[u'ignore_auth'] = True
     context_org_update[u'defer_commit'] = True
-    get_action(u'package_owner_org_update')(context_org_update,
-                                            {u'id': pkg.id,
-                                             u'organization_id': pkg.owner_org})
+    toolkit.get_action(u'package_owner_org_update')(context_org_update,
+                                                    {
+                                                        u'id': pkg.id,
+                                                        u'organization_id': pkg.owner_org
+                                                        })
 
-    for item in plugins.PluginImplementations(plugins.IPackageController):
+    for item in PluginImplementations(interfaces.IPackageController):
         item.create(pkg)
 
         item.after_create(context, data)
@@ -98,9 +100,9 @@ def package_create(context, data_dict):
     if not context.get(u'defer_commit'):
         model.repo.commit()
 
-    ## need to let rest api create
+    # need to let rest api create
     context[u'package'] = pkg
-    ## this is added so that the rest controller can make a new location
+    # this is added so that the rest controller can make a new location
     context[u'id'] = pkg.id
     log.debug(u'Created object %s' % pkg.name)
 
@@ -110,6 +112,9 @@ def package_create(context, data_dict):
     return_id_only = context.get(u'return_id_only', False)
 
     output = context[u'id'] if return_id_only \
-        else get_action(u'package_show')(context, {u'id': context[u'id']})
+        else toolkit.get_action(u'package_show')(context,
+                                                 {
+                                                     u'id': context[u'id']
+                                                     })
 
     return output
