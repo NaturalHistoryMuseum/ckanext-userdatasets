@@ -1,6 +1,8 @@
 ckanext-userdatasets
 ====================
 
+[![Travis branch](https://img.shields.io/travis/NaturalHistoryMuseum/ckanext-userdatasets/master.svg?style=flat-square)](https://travis-ci.org/NaturalHistoryMuseum/ckanext-userdatasets) [![Coveralls github branch](https://img.shields.io/coveralls/github/NaturalHistoryMuseum/ckanext-userdatasets/master.svg?style=flat-square)](https://coveralls.io/github/NaturalHistoryMuseum/ckanext-userdatasets)
+
 Overview
 --------
 
