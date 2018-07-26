@@ -4,7 +4,7 @@
 # This file is part of ckanext-userdatasets
 # Created by the Natural History Museum in London, UK
 
-from ckan.new_authz import has_user_permission_for_some_org, users_role_for_group_or_org
+from ckan.authz import has_user_permission_for_some_org, users_role_for_group_or_org
 from ckanext.userdatasets.logic.auth.auth import (user_is_member_of_package_org,
                                                   user_owns_package_as_member)
 from ckanext.userdatasets.plugin import get_default_auth
