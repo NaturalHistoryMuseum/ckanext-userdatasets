@@ -4,14 +4,14 @@
 # This file is part of ckanext-userdatasets
 # Created by the Natural History Museum in London, UK
 
-from ckanext.userdatasets.plugin import get_default_action
+from ckanext.userdatasets.lib.helpers import get_default_action
 
 
 def organization_list_for_user(context, data_dict):
     '''
 
-    :param context: 
-    :param data_dict: 
+    :param context:
+    :param data_dict:
 
     '''
     perm = data_dict.get(u'permission')

@@ -6,17 +6,19 @@
 
 import importlib
 
-from ckanext.userdatasets.plugin import get_default_action, get_default_auth
+from ckanext.userdatasets.lib.helpers import get_default_action, get_default_auth
+from ckantest.models import TestBase
 from nose.tools import assert_is
 
 
-class TestGetDefaultUnit:
+class TestGetDefaultUnit(TestBase):
     '''Unit tests on the the get_default_auth/action functions in plugin.py'''
+    plugins = [u'userdatasets']
 
     def test_get_default_auth(self):
         ''' '''
         for action in [u'create', u'update', u'delete']:
-            default_module = importlib.import_module(u'ckan.logic.auth' + u'.' + action)
+            default_module = importlib.import_module(u'ckan.logic.auth.' + action)
             for atype in [u'package', u'resource', u'resource_view']:
                 fn_name = atype + u'_' + action
                 assert_is(getattr(default_module, fn_name),
@@ -31,7 +33,7 @@ class TestGetDefaultUnit:
             ]
         for override in to_override:
             default_module = importlib.import_module(
-                u'ckan.logic.action' + u'.' + override[0])
+                u'ckan.logic.action.' + override[0])
             for fn_name in override[1]:
                 assert_is(getattr(default_module, fn_name),
                           get_default_action(override[0], fn_name))

@@ -7,7 +7,7 @@
 from ckanext.userdatasets.logic.auth.auth import (get_resource_view_object,
                                                   user_is_member_of_package_org,
                                                   user_owns_package_as_member)
-from ckanext.userdatasets.plugin import get_default_auth
+from ckanext.userdatasets.lib.helpers import get_default_auth
 
 from ckan.logic.auth import get_package_object, get_resource_object
 
@@ -15,8 +15,8 @@ from ckan.logic.auth import get_package_object, get_resource_object
 def package_delete(context, data_dict):
     '''
 
-    :param context: 
-    :param data_dict: 
+    :param context:
+    :param data_dict:
 
     '''
     user = context[u'auth_user_obj']
@@ -34,13 +34,13 @@ def package_delete(context, data_dict):
 def resource_delete(context, data_dict):
     '''
 
-    :param context: 
-    :param data_dict: 
+    :param context:
+    :param data_dict:
 
     '''
     user = context[u'auth_user_obj']
     resource = get_resource_object(context, data_dict)
-    package = resource.resource_group.package
+    package = resource.package
     if user_owns_package_as_member(user, package):
         return {
             u'success': True
@@ -57,8 +57,8 @@ def resource_delete(context, data_dict):
 def resource_view_delete(context, data_dict):
     '''
 
-    :param context: 
-    :param data_dict: 
+    :param context:
+    :param data_dict:
 
     '''
     user = context[u'auth_user_obj']
@@ -66,11 +66,11 @@ def resource_view_delete(context, data_dict):
     resource = get_resource_object(context, {
         u'id': resource_view.resource_id
     })
-    if user_owns_package_as_member(user, resource.resource_group.package):
+    if user_owns_package_as_member(user, resource.package):
         return {
             u'success': True
         }
-    elif user_is_member_of_package_org(user, resource.resource_group.package):
+    elif user_is_member_of_package_org(user, resource.package):
         return {
             u'success': False
         }

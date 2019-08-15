@@ -6,14 +6,12 @@
 
 import importlib
 
-from ckan.plugins import SingletonPlugin, implements, interfaces
-
-config = {}
+from ckan.plugins import SingletonPlugin, implements, interfaces, toolkit
 
 
 class UserDatasetsPlugin(SingletonPlugin):
     '''"UserDatasetsPlugin
-    
+
     This plugin replaces dataset and resource authentication calls to allow
     users with the 'Member' role to create datasets, and edit/delete their
     own datasets (but not others).
@@ -27,12 +25,12 @@ class UserDatasetsPlugin(SingletonPlugin):
     def configure(self, main_config):
         '''Implementation of IConfigurable.configure
 
-        :param main_config: 
+        :param main_config:
 
         '''
-        config[u'default_auth_module'] = config.get(u'userdatasets.default_auth_module',
+        toolkit.config[u'default_auth_module'] = toolkit.config.get(u'userdatasets.default_auth_module',
                                                     u'ckan.logic.auth')
-        config[u'default_action_module'] = config.get(
+        toolkit.config[u'default_action_module'] = toolkit.config.get(
             u'userdatasets.default_action_module', u'ckan.logic.action')
 
     def get_auth_functions(self):
@@ -42,7 +40,7 @@ class UserDatasetsPlugin(SingletonPlugin):
         auth_functions = {}
         for action in [u'create', u'update', u'delete']:
             default_module = importlib.import_module(
-                config[u'default_auth_module'] + u'.' + action)
+                toolkit.config[u'default_auth_module'] + u'.' + action)
             uds_module = importlib.import_module(
                 u'ckanext.userdatasets.logic.auth.' + action)
             for atype in [u'package', u'resource', u'resource_view']:
@@ -70,31 +68,3 @@ class UserDatasetsPlugin(SingletonPlugin):
         return actions
 
 
-def get_default_auth(ftype, function_name):
-    '''Return the default auth function
-
-    :param type: The type of auth function (create/update/delete)
-    :param function: Name of function. It must exist.
-    :param ftype: 
-    :param function_name: 
-    :returns: The auth function
-
-    '''
-    default_module = importlib.import_module(
-        config[u'default_auth_module'] + u'.' + ftype)
-    return getattr(default_module, function_name)
-
-
-def get_default_action(ftype, function_name):
-    '''Return the default action function
-
-    :param type: The type of action function (create/update/get)
-    :param function: Name of function. It must exist.
-    :param ftype: 
-    :param function_name: 
-    :returns: The action function
-
-    '''
-    default_module = importlib.import_module(
-        config[u'default_action_module'] + u'.' + ftype)
-    return getattr(default_module, function_name)

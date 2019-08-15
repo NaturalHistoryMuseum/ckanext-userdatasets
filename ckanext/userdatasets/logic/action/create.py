@@ -19,8 +19,8 @@ log = logging.getLogger(__name__)
 def package_create(context, data_dict):
     '''
 
-    :param context: 
-    :param data_dict: 
+    :param context:
+    :param data_dict:
 
     '''
     model = context[u'model']
@@ -78,7 +78,6 @@ def package_create(context, data_dict):
 
     pkg = model_save.package_dict_save(data, context)
 
-    model.setup_default_user_roles(pkg, admins)
     # Needed to let extensions know the package id
     model.Session.flush()
     data[u'id'] = pkg.id
