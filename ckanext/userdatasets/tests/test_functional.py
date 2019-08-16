@@ -220,13 +220,15 @@ class TestFuncResourceViews(TestFuncBase):
         new_desc = u'description for test_members_can_edit_own_resource_views'
         res_view_dict_2 = toolkit.get_action(u'resource_view_update')(context, {
             u'id': res_view_dict[u'id'],
+            u'resource_id': res_dict[u'id'],
             u'description': new_desc
             })
         nose.tools.assert_equal(res_view_dict_2[u'description'], new_desc)
         nose.tools.assert_not_equal(res_view_dict[u'description'], res_view_dict_2[u'description'])
 
         toolkit.get_action(u'resource_view_delete')(context, {
-            u'id': res_view_dict[u'id']
+            u'id': res_view_dict[u'id'],
+            u'resource_id': res_dict[u'id']
             })
 
     def test_editors_can_edit_org_resource_views(self):
@@ -240,13 +242,15 @@ class TestFuncResourceViews(TestFuncBase):
         new_desc = u'description for test_editors_can_edit_org_resource_views'
         res_view_dict_2 = toolkit.get_action(u'resource_view_update')(context, {
             u'id': res_view_dict[u'id'],
+            u'resource_id': res_dict[u'id'],
             u'description': new_desc
             })
         nose.tools.assert_equal(res_view_dict_2[u'description'], new_desc)
         nose.tools.assert_not_equal(res_view_dict[u'description'], res_view_dict_2[u'description'])
 
         toolkit.get_action(u'resource_view_delete')(context, {
-            u'id': res_view_dict[u'id']
+            u'id': res_view_dict[u'id'],
+            u'resource_id': res_dict[u'id']
             })
 
     def test_members_cannot_edit_others_resource_views(self):
@@ -262,12 +266,14 @@ class TestFuncResourceViews(TestFuncBase):
         with nose.tools.assert_raises(toolkit.NotAuthorized):
             toolkit.get_action(u'resource_view_update')(context, {
                 u'id': res_view_dict[u'id'],
+                u'resource_id': res_dict[u'id'],
                 u'description': new_desc
                 })
 
         with nose.tools.assert_raises(toolkit.NotAuthorized):
             toolkit.get_action(u'resource_view_delete')(context, {
-                u'id': res_view_dict[u'id']
+                u'id': res_view_dict[u'id'],
+                u'resource_id': res_dict[u'id']
                 })
 
         with nose.tools.assert_raises(toolkit.NotAuthorized):
