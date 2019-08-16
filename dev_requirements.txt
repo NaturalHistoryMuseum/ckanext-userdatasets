@@ -1,4 +1,5 @@
 nose
+rednose
 mock
 httpretty
 coveralls
