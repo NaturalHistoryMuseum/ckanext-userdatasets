@@ -13,7 +13,7 @@ import ckan.lib.plugins as lib_plugins
 from ckan.logic.validators import owner_org_validator as default_owner_org_validator
 from ckan.plugins import PluginImplementations, interfaces, toolkit
 
-log = logging.getLogger(__name__)
+log = logging.getLogger(u'ckanext.userdatasets')
 
 
 def package_create(context, data_dict):
@@ -54,11 +54,11 @@ def package_create(context, data_dict):
 
     data, errors = lib_plugins.plugin_validate(
         package_plugin, context, data_dict, schema, u'package_create')
-    log.debug(u'package_create validate_errs=%r user=%s package=%s data=%r',
-              errors, context.get(u'user'),
-              data.get(u'name'), data_dict)
 
     if errors:
+        log.debug(u'package_create failed: validate_errs=%r user=%s package=%s data=%r',
+                  errors, context.get(u'user'),
+                  data.get(u'name'), data_dict)
         model.Session.rollback()
         raise toolkit.ValidationError(errors)
 
@@ -103,7 +103,7 @@ def package_create(context, data_dict):
     context[u'package'] = pkg
     # this is added so that the rest controller can make a new location
     context[u'id'] = pkg.id
-    log.debug(u'Created object %s' % pkg.name)
+    log.debug(u'Created dataset %s' % pkg.name)
 
     # Make sure that a user provided schema is not used on package_show
     context.pop(u'schema', None)

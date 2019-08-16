@@ -4,9 +4,9 @@
 # This file is part of ckanext-userdatasets
 # Created by the Natural History Museum in London, UK
 
-import datetime
 import logging
 
+import datetime
 from ckanext.userdatasets.logic.validators import owner_org_validator
 
 import ckan.lib.dictization.model_save as model_save
@@ -14,14 +14,14 @@ import ckan.lib.plugins as lib_plugins
 from ckan.logic.validators import owner_org_validator as default_owner_org_validator
 from ckan.plugins import PluginImplementations, interfaces, toolkit
 
-log = logging.getLogger(__name__)
+log = logging.getLogger(u'ckanext.userdatasets')
 
 
 def package_update(context, data_dict):
     '''
 
-    :param context: 
-    :param data_dict: 
+    :param context:
+    :param data_dict:
 
     '''
     model = context[u'model']
@@ -63,12 +63,12 @@ def package_update(context, data_dict):
 
     data, errors = lib_plugins.plugin_validate(
         package_plugin, context, data_dict, schema, u'package_update')
-    log.debug(u'package_update validate_errs=%r user=%s package=%s data=%r',
-              errors, context.get(u'user'),
-              context.get(u'package').name if context.get(u'package') else u'',
-              data)
 
     if errors:
+        log.debug(u'package_update failed: validate_errs=%r user=%s package=%s data=%r',
+                  errors, context.get(u'user'),
+                  context.get(u'package').name if context.get(u'package') else u'',
+                  data)
         model.Session.rollback()
         raise toolkit.ValidationError(errors)
 
@@ -105,7 +105,7 @@ def package_update(context, data_dict):
     if not context.get(u'defer_commit'):
         model.repo.commit()
 
-    log.debug(u'Updated object %s' % pkg.name)
+    log.debug(u'Updated dataset %s' % pkg.name)
 
     return_id_only = context.get(u'return_id_only', False)
 
