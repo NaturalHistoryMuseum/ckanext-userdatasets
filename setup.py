@@ -14,13 +14,14 @@ with open(u'README.md', u'r') as f:
 setup(
     name=u'ckanext-userdatasets',
     version=__version__,
-    description=u'A CKAN extension that allows organisation members to create datasets, and edit or delete the datasets they have created.',
+    description=u'A CKAN extension that allows organisation members to create datasets, and edit '
+                u'or delete the datasets they have created.',
     long_description=__long_description__,
     classifiers=[
         u'Development Status :: 3 - Alpha',
         u'Framework :: Flask',
         u'Programming Language :: Python :: 2.7'
-    ],
+        ],
     keywords=u'CKAN data userdatasets',
     author=u'Natural History Museum',
     author_email=u'data@nhm.ac.uk',
@@ -31,8 +32,8 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=[
-		u'importlib',
-	],
+        u'importlib',
+        ],
     entry_points= \
         u'''
         [ckan.plugins]
