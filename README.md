@@ -71,10 +71,8 @@ These are the options that can be specified in your .ini config file. It's not r
 
 Name|Description|Options|Default
 --|--|--|--
-`ckanext.userdatasets.default_auth_module`|Module that holds the default implementation of the auth
-                                      functions.||`ckan.logic.auth`
-`ckanext.userdatasets.default_action_module`|Module that holds the default implementation of the action
-                                        functions.||`ckan.logic.action`
+`ckanext.userdatasets.default_auth_module`|Module that holds the default implementation of the auth functions.||`ckan.logic.auth`
+`ckanext.userdatasets.default_action_module`|Module that holds the default implementation of the action functions.||`ckan.logic.action`
 
 
 # Usage
