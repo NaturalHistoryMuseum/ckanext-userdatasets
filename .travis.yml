@@ -1,0 +1,19 @@
+dist: trusty
+language: python
+
+python:
+  - "2.7"
+
+install:
+  - sh ckanext/userdatasets/tests/bin/build.sh
+
+services:
+  - redis-server
+  - postgresql
+
+addons:
+  postgresql: "9.4"
+
+script: coverage run --source=ckanext.userdatasets setup.py nosetests --ckan --with-pylons=ckanext/userdatasets/tests/bin/test.ini --nologcapture --debug=ckantest,ckanext.userdatasets --rednose
+
+after_success: coveralls

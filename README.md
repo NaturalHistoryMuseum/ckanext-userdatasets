@@ -1,62 +1,100 @@
-ckanext-userdatasets
-====================
+<img src=".github/nhm-logo.svg" align="left" width="150px" height="100px" hspace="40"/>
 
-Overview
---------
+# ckanext-userdatasets
 
-A CKAN extension to allow organization members to create datasets, and edit or delete the datasets they have created.
+[![Travis](https://img.shields.io/travis/NaturalHistoryMuseum/ckanext-userdatasets/master.svg?style=flat-square)](https://travis-ci.org/NaturalHistoryMuseum/ckanext-userdatasets)
+[![Coveralls](https://img.shields.io/coveralls/github/NaturalHistoryMuseum/ckanext-userdatasets/master.svg?style=flat-square)](https://coveralls.io/github/NaturalHistoryMuseum/ckanext-userdatasets)
+[![CKAN](https://img.shields.io/badge/ckan-2.9.0a-orange.svg?style=flat-square)](https://github.com/ckan/ckan)
 
-This extension changes the permissions of users with the 'Member' role in an organization allowing them to create
+_A CKAN extension that allows organisation members to create datasets, and edit or delete the datasets they have created._
+
+
+# Overview
+
+This extension changes the permissions of users with the 'Member' role in an organisation, allowing them to create
 datasets, and to edit or delete the datasets they have created. Unlike users with the 'Editor' role, they cannot
 edit or delete datasets created by other users.
 
-Notes: 
+Notes:
 - This applies to the existing 'Member' role rather than creating a new one as it is currently not possible to add
   new roles from an extension;
-- The plugin works with custom dataset types, however it will not work with other plugins which override 
+- The plugin works with custom dataset types, however it will not work with other plugins which override
   package/resource update/create/delete authorization functions, and package_create/update actions.
-  
+
 **Warning: This plugin modifies CKAN's permission system. The current implementation cannot be considered fully
  safe and should only be used AT YOUR OWN RISK in a trusted environment. Ensure you run the tests with your plugins
  enabled.**
 
-Compatibility
--------------
 
-- v0.1 for CKAN 2.2
+# Installation
 
-Configuration
--------------
+Path variables used below:
+- `$INSTALL_FOLDER` (i.e. where CKAN is installed), e.g. `/usr/lib/ckan/default`
+- `$CONFIG_FILE`, e.g. `/etc/ckan/default/development.ini`
 
-The following configuration directives are available:
+1. Clone the repository into the `src` folder:
 
-- `userdatasets.default_auth_module`: The name of the module that holds the default implementation of the auth 
-                                      functions. Only change this if you know what you are doing! Defaults to 
-                                      `ckan.logic.auth`
-- `userdatasets.default_action_module`: The name of the module that holds the default implementation of the action
-                                        functions. Only change this if you know what you are doing! Defaults to 
-                                        `ckan.logic.actin`
+  ```bash
+  cd $INSTALL_FOLDER/src
+  git clone https://github.com/NaturalHistoryMuseum/ckanext-userdatasets.git
+  ```
+
+2. Activate the virtual env:
+
+  ```bash
+  . $INSTALL_FOLDER/bin/activate
+  ```
+
+3. Install the requirements from requirements.txt:
+
+  ```bash
+  cd $INSTALL_FOLDER/src/ckanext-userdatasets
+  pip install -r requirements.txt
+  ```
+
+4. Run setup.py:
+
+  ```bash
+  cd $INSTALL_FOLDER/src/ckanext-userdatasets
+  python setup.py develop
+  ```
+
+5. Add 'userdatasets' to the list of plugins in your `$CONFIG_FILE`:
+
+  ```ini
+  ckan.plugins = ... userdatasets
+  ```
+
+# Configuration
+
+These are the options that can be specified in your .ini config file. It's not recommended to change these settings unless you know what you're doing!
+
+Name|Description|Options|Default
+--|--|--|--
+`ckanext.userdatasets.default_auth_module`|Module that holds the default implementation of the auth
+                                      functions.||`ckan.logic.auth`
+`ckanext.userdatasets.default_action_module`|Module that holds the default implementation of the action
+                                        functions.||`ckan.logic.action`
 
 
-Usage
------
+# Usage
 
-1. Install the package *in your ckan virtual environment*: 
+## Actions
 
-```sh
-    pip install git+https://github.com/NaturalHistoryMuseum/ckanext-userdatasets#egg=ckanext-userdatasets
+No new actions are defined in this extension; three are overridden to modify validators and permissions.
+
+### `package_create`
+
+### `package_update`
+
+### `organization_list_for_user`
+
+
+# Testing
+
+_Test coverage is currently extremely limited._
+
+To run the tests, use nosetests inside your virtualenv. The `--nocapture` flag will allow you to see the debug statements.
+```bash
+nosetests --ckan --with-pylons=$TEST_CONFIG_FILE --where=$INSTALL_FOLDER/src/ckanext-userdatasets --nologcapture --nocapture
 ```
-
-
-2. Add `userdatasets` to `ckan.plugins` in your configuration file. 
-
-Testing
--------
-
-The plugin contains both unit tests and functional tests. From the source directory, run:
-
-```sh
-    nosetests --ckan --with-pylons=test.ini ckanext/userdatasets/tests
-```
-
-This assumes that ckan's test.ini is in ../ckan/test.ini. Adjust accordingly.

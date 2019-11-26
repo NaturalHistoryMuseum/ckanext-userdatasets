@@ -1,283 +1,280 @@
-"""Functional tests for the userdatasets plugin
+#!/usr/bin/env python
+# encoding: utf-8
+#
+# This file is part of ckanext-userdatasets
+# Created by the Natural History Museum in London, UK
 
-    These test ensure that the plugins behave as expected within CKAN. We refer to 'member', 'editor' and 'admin' as
-    users with the member, editor or admin role respectively in a given organization.
+import nose
+from ckantest.models import TestBase
 
-    For each type of object(package, resource, resource_view) this tests that:
-        - a given user can create such objects and edit/delete their own objects in an organization of which
-          they are a member;
-        - editors can edit/delete objects created by members;
-        - members cannot edit/delete objects created by other members;
-        - users cannot create such object in organizations where they are not members.
+from ckan.plugins import toolkit
 
-    The actual implementation of the auth functions are tested in a separate unit test.
-"""
-import paste.fixture
-import pylons.test
 
-import ckan.model as model
-import ckan.tests as tests
-import ckan.plugins as plugins
+class TestFuncBase(TestBase):
+    '''Functional tests for the ckanext-userdatasets plugin'''
+    plugins = [u'userdatasets', u'datastore', u'text_view']
 
-from nose import SkipTest
-from nose.tools import assert_equal
-
-class TestUserdataSetsFunc(object):
-    """Functional tests for the ckanext-userdatasets plugin"""
     @classmethod
     def setup_class(cls):
-        # Check whether this version of CKAN has resource views.  Remove this test when branch 1251 gets merged into CKAN master.
-        try:
-            from ckan.logic.action.create import resource_view_create
-            cls.has_resource_views = True
-        except ImportError:
-            cls.has_resource_views = False
-        # Create the CKAN app and load our plugins
-        cls.app = paste.fixture.TestApp(pylons.test.pylonsapp)
-        plugins.load('userdatasets')
-        if cls.has_resource_views:
-            plugins.load('text_preview')
+        super(TestFuncBase, cls).setup_class()
+        cls._make_users_and_orgs()
 
     @classmethod
-    def teardown_class(cls):
-        # Unload our plugin
-        plugins.unload('userdatasets')
-
-    def setup(self):
-        # Create a sysadmin user
-        self.sysadmin = model.User(name='test_sysadmin', sysadmin=True)
-        model.Session.add(self.sysadmin)
-        model.Session.commit()
-        model.Session.remove()
-        # Create three users: test_member_1, test_member_2 and test_editor
-        self.users = {}
-        for name in ['test_member_1', 'test_member_2', 'test_editor']:
-            self.users[name] = tests.call_action_api(self.app, 'user_create',
-                                                     apikey=self.sysadmin.apikey,
-                                                     name=name,
-                                                     email='email',
-                                                     password='password')
-        # Create the organization test_org_1 of which test_member_1 and test_member_2 are
-        # members, and test_editor is an editor
+    def _make_users_and_orgs(cls):
         users = [
-            {'name': 'test_member_1', 'capacity': 'member'},
-            {'name': 'test_member_2', 'capacity': 'member'},
-            {'name': 'test_editor', 'capacity': 'editor'},
-        ]
-        self.organizations = {}
-        self.organizations['test_org_1'] = tests.call_action_api(self.app, 'organization_create',
-                                               apikey=self.sysadmin.apikey,
-                                               name='test_org_1',
-                                               users=users)
-        # Create the organization test_org_2 with no members.
-        self.organizations['test_org_2'] = tests.call_action_api(self.app, 'organization_create',
-                                               apikey=self.sysadmin.apikey,
-                                               name='test_org_2')
+            {
+                u'name': u'test_member_1',
+                u'capacity': u'member'
+                },
+            {
+                u'name': u'test_member_2',
+                u'capacity': u'member'
+                },
+            {
+                u'name': u'test_editor',
+                u'capacity': u'editor'
+                },
+            ]
+        for user in users:
+            cls.data_factory().user(name=user[u'name'], password=u'password')
 
-    def teardown(self):
-        # Rebuild the db; each test starts clean.
-        model.repo.rebuild_db()
+        cls.data_factory().organisation(name=u'test_org_1', users=users)
+        cls.data_factory().organisation(name=u'test_org_2')
 
-    def test_dataset(self):
-        """Tests datasets"""
-        # Create a dataset test_pkg_1 in organization test_org_1 as member test_member_1
-        pkg = tests.call_action_api(self.app, 'package_create',
-                                    apikey=self.users['test_member_1']['apikey'],
-                                    name='test_pkg_1',
-                                    owner_org=self.organizations['test_org_1']['id'])
-        assert_equal(pkg['name'], 'test_pkg_1')
-        # Update the dataset test_pkg_1 as member test_member_1
-        pkg = tests.call_action_api(self.app, 'package_update',
-                                       apikey=self.users['test_member_1']['apikey'],
-                                       id=pkg['id'],
-                                       title='new title')
-        assert_equal(pkg['title'], 'new title')
-        # Update the dataset test_pkg_1 as member test_editor
-        pkg = tests.call_action_api(self.app, 'package_update',
-                                       apikey=self.users['test_editor']['apikey'],
-                                       id=pkg['id'],
-                                       title='new title 2')
-        assert_equal(pkg['title'], 'new title 2')
+    def _make_package(self, org=None, user=None, **kwargs):
+        data_dict = {}
+        if org is not None:
+            data_dict.update({
+                u'owner_org': self.data_factory().orgs[org][u'id']
+                })
+        data_dict.update(kwargs)
+        context = None if user is None else {
+            u'user': user
+            }
+        pkg_dict = self.data_factory().package(context=context, **data_dict)
+        return pkg_dict
+
+    def _make_resource(self, package_id, user=None, **kwargs):
+        context = None if user is None else {
+            u'user': user
+            }
+        res_dict = self.data_factory().resource(package_id=package_id, context=context, **kwargs)
+        return res_dict
+
+    def _make_resource_view(self, resource_id, user=None, **kwargs):
+        context = self.data_factory().context if user is None else {
+            u'user': user
+            }
+        data_dict = {
+            u'resource_id': resource_id,
+            u'view_type': u'text_view',
+            u'title': u'initial resource view title'
+            }
+        data_dict.update(**kwargs)
+        res_view_dict = toolkit.get_action(u'resource_view_create')(context, data_dict)
+        return res_view_dict
+
+    def _org_1_member_1(self, resource=False, resource_view=False):
+        pkg_dict = self.data_factory().packages.get(u'org_1_member_1', None)
+        if pkg_dict is None:
+            pkg_dict = self._make_package(org=u'test_org_1', user=u'test_member_1',
+                                          name=u'org_1_member_1')
+        if not resource and not resource_view:
+            return pkg_dict
+        res_list = pkg_dict.get(u'resources', [])
+        res_dict = res_list[0] if len(res_list) > 0 else self._make_resource(pkg_dict[u'id'],
+                                                                             user=u'test_member_1')
+        pkg_dict = self.data_factory().packages.get(u'org_1_member_1', None)
+        if resource and not resource_view:
+            return pkg_dict, res_dict
+        res_view_dict = self._make_resource_view(res_dict[u'id'], user=u'test_member_1')
+        return pkg_dict, res_dict, res_view_dict
+
+
+class TestFuncDatasets(TestFuncBase):
+    def test_members_can_edit_own_datasets(self):
+        '''Tests datasets'''
+        pkg_dict = self._org_1_member_1()
+        pkg_dict = toolkit.get_action(u'package_update')({
+            u'user': u'test_member_1'
+            }, {
+            u'id': pkg_dict[u'id'],
+            u'title': u'title for test_members_can_edit_own_datasets'
+            })
+        nose.tools.assert_equal(pkg_dict[u'title'], u'title for test_members_can_edit_own_datasets')
+        toolkit.get_action(u'package_delete')({
+            u'user': u'test_member_1'
+            }, {
+            u'id': pkg_dict[u'id']
+            })
+
+    def test_editors_can_edit_org_datasets(self):
+        pkg_dict = self._org_1_member_1()
+        pkg_dict = toolkit.get_action(u'package_update')({
+            u'user': u'test_editor'
+            }, {
+            u'id': pkg_dict[u'id'],
+            u'title': u'title for test_editors_can_edit_org_datasets'
+            })
+        nose.tools.assert_equal(pkg_dict[u'title'], u'title for test_editors_can_edit_org_datasets')
+        toolkit.get_action(u'package_delete')({
+            u'user': u'test_editor'
+            }, {
+            u'id': pkg_dict[u'id']
+            })
+
+    def test_members_cannot_edit_others_datasets(self):
+        pkg_dict = self._org_1_member_1()
         # Attempt to update test_pkg_1 as member test_member_2
-        result = tests.call_action_api(self.app, 'package_update',
-                                       apikey=self.users['test_member_2']['apikey'],
-                                       id=pkg['id'],
-                                       description='new description',
-                                       status=403)
-        assert_equal(result['__type'], 'Authorization Error')
+        with nose.tools.assert_raises_regexp(toolkit.NotAuthorized, u'test_member_2'):
+            toolkit.get_action(u'package_update')({
+                u'user': u'test_member_2'
+                }, {
+                u'id': pkg_dict[u'id'],
+                u'title': u'title for test_members_cannot_edit_others_datasets'
+                })
         # Attempt to delete test_pkg_1 as member test_member_2
-        result = tests.call_action_api(self.app, 'package_delete',
-                                       apikey=self.users['test_member_2']['apikey'],
-                                       id=pkg['id'],
-                                       status=403)
-        assert_equal(result['__type'], 'Authorization Error')
-        # Delete test_pkg_1 as member test_member_1
-        result = tests.call_action_api(self.app, 'package_delete',
-                                       apikey=self.users['test_member_1']['apikey'],
-                                       id=pkg['id'])
-        assert_equal(result, None)
-        # Create a dataset test_pkg_2 in organization test_org_1 as member test_member_1
-        pkg_2 = tests.call_action_api(self.app, 'package_create',
-                                      apikey=self.users['test_member_1']['apikey'],
-                                      name='test_pkg_2',
-                                      owner_org=self.organizations['test_org_1']['id'])
-        assert_equal(pkg_2['name'], 'test_pkg_2')
-        # Delete test_pkg_2 as member test_editor
-        result = tests.call_action_api(self.app, 'package_delete',
-                                       apikey=self.users['test_editor']['apikey'],
-                                       id=pkg_2['id'])
-        assert_equal(result, None)
-        # Attempt to create a dataset test_pkg_3 in organization test_org_2 as member test_member_1
-        result = tests.call_action_api(self.app, 'package_create',
-                                    apikey=self.users['test_member_1']['apikey'],
-                                    name='test_pkg_3',
-                                    owner_org=self.organizations['test_org_2']['id'],
-                                    status=403)
-        assert_equal(result['__type'], 'Authorization Error')
+        with nose.tools.assert_raises_regexp(toolkit.NotAuthorized, u'test_member_2'):
+            toolkit.get_action(u'package_delete')({
+                u'user': u'test_member_2'
+                }, {
+                u'id': pkg_dict[u'id']
+                })
 
-    def test_resource(self):
-        """Tests resources"""
-        # Create a dataset test_pkg_1 in organization test_org_1 as member test_member_1
-        pkg = tests.call_action_api(self.app, 'package_create',
-                                    apikey=self.users['test_member_1']['apikey'],
-                                    name='test_pkg_1',
-                                    owner_org=self.organizations['test_org_1']['id'])
-        assert_equal(pkg['name'], 'test_pkg_1')
-        # Create a resource test_res_1 under test_pkg_1 as member test_member_1
-        res_1 = tests.call_action_api(self.app, 'resource_create',
-                                      apikey=self.users['test_member_1']['apikey'],
-                                      url='http://test_res_1.test.com',
-                                      package_id=pkg['id'])
-        assert_equal(res_1['url'], 'http://test_res_1.test.com')
-        # Update the resource test_res_1 as member test_member_1
-        res_1 = tests.call_action_api(self.app, 'resource_update',
-                                      apikey=self.users['test_member_1']['apikey'],
-                                      id=res_1['id'],
-                                      url='http://test_res_1.test.com',
-                                      description='test description')
-        assert_equal(res_1['description'], 'test description')
-        # Update the resource test_res_1 as member test_editor
-        res_1 = tests.call_action_api(self.app, 'resource_update',
-                                      apikey=self.users['test_editor']['apikey'],
-                                      id=res_1['id'],
-                                      url='http://test_res_1.test.com',
-                                      description='test description 2')
-        assert_equal(res_1['description'], 'test description 2')
-        # Attempt to update test_res_1 as member test_member_2
-        result = tests.call_action_api(self.app, 'resource_update',
-                                       apikey=self.users['test_member_2']['apikey'],
-                                       id=res_1['id'],
-                                       url='http://test_res_1.test.com',
-                                       description='test description 3',
-                                       status=403)
-        assert_equal(result['__type'], 'Authorization Error')
-        # Attempt to delete test_res_1 as member test_member_2
-        result = tests.call_action_api(self.app, 'resource_delete',
-                                       apikey=self.users['test_member_2']['apikey'],
-                                       id=res_1['id'],
-                                       status=403)
-        assert_equal(result['__type'], 'Authorization Error')
-        # Attempt to create a resource test_res_2 under test_pkg_1 as member test_member_2
-        result = tests.call_action_api(self.app, 'resource_create',
-                                      apikey=self.users['test_member_2']['apikey'],
-                                      url='http://test_res_2.test.com',
-                                      package_id=pkg['id'],
-                                      status=403)
-        assert_equal(result['__type'], 'Authorization Error')
-        # Delete test_res_1 as member test_member_1
-        result = tests.call_action_api(self.app, 'resource_delete',
-                                       apikey=self.users['test_member_1']['apikey'],
-                                       id=res_1['id'])
-        assert_equal(result, None)
-        # Create a resource test_res_3 under test_pkg_1 as member test_member_1
-        res_3 = tests.call_action_api(self.app, 'resource_create',
-                                      apikey=self.users['test_member_1']['apikey'],
-                                      url='http://test_res_3.test.com',
-                                      package_id=pkg['id'])
-        assert_equal(res_3['url'], 'http://test_res_3.test.com')
-        # Delete test_res_3 as member test_editor
-        result = tests.call_action_api(self.app, 'resource_delete',
-                                       apikey=self.users['test_editor']['apikey'],
-                                       id=res_3['id'])
-        assert_equal(result, None)
+    def test_non_members_cannot_create_datasets(self):
+        with nose.tools.assert_raises_regexp(toolkit.NotAuthorized, u'test_member_1'):
+            self._make_package(org='test_org_2', user='test_member_1')
 
-    def test_resource_view(self):
-        """Tests resource views"""
-        # Only do this if this version of CKAN has resource views.
-        if not self.has_resource_views:
-            raise SkipTest("This version of CKAN does not have resource views")
-        # Create a dataset test_pkg_1 in organization test_org_1 as member test_member_1
-        pkg = tests.call_action_api(self.app, 'package_create',
-                                    apikey=self.users['test_member_1']['apikey'],
-                                    name='test_pkg_1',
-                                    owner_org=self.organizations['test_org_1']['id'])
-        assert_equal(pkg['name'], 'test_pkg_1')
-        # Create a resource test_res_1 under test_pkg_1 as member test_member_1
-        res_1 = tests.call_action_api(self.app, 'resource_create',
-                                      apikey=self.users['test_member_1']['apikey'],
-                                      url='http://test_res_1.test.com',
-                                      package_id=pkg['id'])
-        assert_equal(res_1['url'], 'http://test_res_1.test.com')
-        # Create a resource view test_view_1 under test_rest_1 as member test_member_1
-        view_1 = tests.call_action_api(self.app, 'resource_view_create',
-                                       apikey=self.users['test_member_1']['apikey'],
-                                       resource_id=res_1['id'],
-                                       title='test view',
-                                       view_type='text')
-        assert_equal(view_1['title'], 'test view')
-        # Update the resource view test_view_1 as test_member_1
-        view_1 = tests.call_action_api(self.app, 'resource_view_update',
-                                       apikey=self.users['test_member_1']['apikey'],
-                                       id=view_1['id'],
-                                       title='test view',
-                                       description='test description',
-                                       view_type='text')
-        assert_equal(view_1['description'], 'test description')
-        # Update the resource view test_view_1 as test_editor
-        view_1 = tests.call_action_api(self.app, 'resource_view_update',
-                                       apikey=self.users['test_editor']['apikey'],
-                                       id=view_1['id'],
-                                       title='test view',
-                                       description='test description 2',
-                                       view_type='text')
-        assert_equal(view_1['description'], 'test description 2')
-        # Attempt to update test_view_1 as test_member_2
-        result = tests.call_action_api(self.app, 'resource_view_update',
-                                       apikey=self.users['test_member_2']['apikey'],
-                                       id=view_1['id'],
-                                       title='test view',
-                                       description='test description 3',
-                                       view_type='text',
-                                       status=403)
-        assert_equal(result['__type'], 'Authorization Error')
-        # Attempt to delete test_view_1 as test_member_2
-        result = tests.call_action_api(self.app, 'resource_view_delete',
-                                       apikey=self.users['test_member_2']['apikey'],
-                                       id=view_1['id'],
-                                       status=403)
-        assert_equal(result['__type'], 'Authorization Error')
-        # Attempt to create a resource view test_view_2 under test_res_1 as test_member_2
-        result = tests.call_action_api(self.app, 'resource_view_create',
-                                       apikey=self.users['test_member_2']['apikey'],
-                                       resource_id=res_1['id'],
-                                       title='test view 2',
-                                       view_type='text',
-                                       status=403)
-        assert_equal(result['__type'], 'Authorization Error')
-        # Delete test_view_1 as test_member_1
-        result = tests.call_action_api(self.app, 'resource_view_delete',
-                                       apikey=self.users['test_member_1']['apikey'],
-                                       id=view_1['id'])
-        assert_equal(result, None)
-        # Create a resource view test_view_3 under test_rest_1 as member test_member_1
-        view_3 = tests.call_action_api(self.app, 'resource_view_create',
-                                       apikey=self.users['test_member_1']['apikey'],
-                                       resource_id=res_1['id'],
-                                       title='test view 3',
-                                       view_type='text')
-        assert_equal(view_3['title'], 'test view 3')
-        # Delete test_view_3 as member test_editor
-        result = tests.call_action_api(self.app, 'resource_view_delete',
-                                       apikey=self.users['test_editor']['apikey'],
-                                       id=view_3['id'])
-        assert_equal(result, None)
+
+class TestFuncResources(TestFuncBase):
+    def test_members_can_edit_own_resources(self):
+        pkg_dict, res_dict = self._org_1_member_1(resource=True)
+        nose.tools.assert_greater_equal(len(pkg_dict[u'resources']), 1)
+
+        res_dict = toolkit.get_action(u'resource_update')({
+            u'user': u'test_member_1'
+            }, {
+            u'id': res_dict[u'id'],
+            u'description': u'test description 2'
+            })
+        nose.tools.assert_equal(res_dict[u'description'], u'test description 2')
+
+        toolkit.get_action(u'resource_delete')({
+            u'user': u'test_member_1'
+            }, {
+            u'id': res_dict[u'id']
+            })
+
+    def test_editors_can_edit_org_resources(self):
+        pkg_dict, res_dict = self._org_1_member_1(resource=True)
+        nose.tools.assert_greater_equal(len(pkg_dict[u'resources']), 1)
+
+        res_dict = toolkit.get_action(u'resource_update')({
+            u'user': u'test_editor'
+            }, {
+            u'id': res_dict[u'id'],
+            u'description': u'test description for test_editor'
+            })
+        nose.tools.assert_equal(res_dict[u'description'], u'test description for test_editor')
+
+        toolkit.get_action(u'resource_delete')({
+            u'user': u'test_editor'
+            }, {
+            u'id': res_dict[u'id']
+            })
+
+    def test_members_cannot_edit_others_resources(self):
+        pkg_dict, res_dict = self._org_1_member_1(resource=True)
+        nose.tools.assert_greater_equal(len(pkg_dict[u'resources']), 1)
+
+        context = {
+            u'user': u'test_member_2'
+            }
+
+        with nose.tools.assert_raises(toolkit.NotAuthorized):
+            res_dict = toolkit.get_action(u'resource_update')(context, {
+                u'id': res_dict[u'id'],
+                u'description': u'this should not work'
+                })
+
+        with nose.tools.assert_raises(toolkit.NotAuthorized):
+            toolkit.get_action(u'resource_delete')(context, {
+                u'id': res_dict[u'id']
+                })
+
+        with nose.tools.assert_raises(toolkit.NotAuthorized):
+            self.data_factory().resource(package_id=pkg_dict[u'id'],
+                                         context=context,
+                                         description=u'test description 2')
+
+
+class TestFuncResourceViews(TestFuncBase):
+    def test_members_can_edit_own_resource_views(self):
+        pkg_dict, res_dict, res_view_dict = self._org_1_member_1(resource=True, resource_view=True)
+        nose.tools.assert_greater_equal(len(pkg_dict[u'resources']), 1)
+        nose.tools.assert_equal(res_view_dict[u'view_type'], u'text_view')
+
+        context = {
+            u'user': u'test_member_1'
+            }
+        new_desc = u'description for test_members_can_edit_own_resource_views'
+        res_view_dict_2 = toolkit.get_action(u'resource_view_update')(context, {
+            u'id': res_view_dict[u'id'],
+            u'resource_id': res_dict[u'id'],
+            u'description': new_desc
+            })
+        nose.tools.assert_equal(res_view_dict_2[u'description'], new_desc)
+        nose.tools.assert_not_equal(res_view_dict[u'description'], res_view_dict_2[u'description'])
+
+        toolkit.get_action(u'resource_view_delete')(context, {
+            u'id': res_view_dict[u'id'],
+            u'resource_id': res_dict[u'id']
+            })
+
+    def test_editors_can_edit_org_resource_views(self):
+        pkg_dict, res_dict, res_view_dict = self._org_1_member_1(resource=True, resource_view=True)
+        nose.tools.assert_greater_equal(len(pkg_dict[u'resources']), 1)
+        nose.tools.assert_equal(res_view_dict[u'view_type'], u'text_view')
+
+        context = {
+            u'user': u'test_editor'
+            }
+        new_desc = u'description for test_editors_can_edit_org_resource_views'
+        res_view_dict_2 = toolkit.get_action(u'resource_view_update')(context, {
+            u'id': res_view_dict[u'id'],
+            u'resource_id': res_dict[u'id'],
+            u'description': new_desc
+            })
+        nose.tools.assert_equal(res_view_dict_2[u'description'], new_desc)
+        nose.tools.assert_not_equal(res_view_dict[u'description'], res_view_dict_2[u'description'])
+
+        toolkit.get_action(u'resource_view_delete')(context, {
+            u'id': res_view_dict[u'id'],
+            u'resource_id': res_dict[u'id']
+            })
+
+    def test_members_cannot_edit_others_resource_views(self):
+        pkg_dict, res_dict, res_view_dict = self._org_1_member_1(resource=True, resource_view=True)
+        nose.tools.assert_greater_equal(len(pkg_dict[u'resources']), 1)
+        nose.tools.assert_equal(res_view_dict[u'view_type'], u'text_view')
+
+        context = {
+            u'user': u'test_member_2'
+            }
+        new_desc = u'description for test_members_cannot_edit_others_resource_views'
+
+        with nose.tools.assert_raises(toolkit.NotAuthorized):
+            toolkit.get_action(u'resource_view_update')(context, {
+                u'id': res_view_dict[u'id'],
+                u'resource_id': res_dict[u'id'],
+                u'description': new_desc
+                })
+
+        with nose.tools.assert_raises(toolkit.NotAuthorized):
+            toolkit.get_action(u'resource_view_delete')(context, {
+                u'id': res_view_dict[u'id'],
+                u'resource_id': res_dict[u'id']
+                })
+
+        with nose.tools.assert_raises(toolkit.NotAuthorized):
+            self._make_resource_view(res_dict[u'id'], user='test_member_2')
