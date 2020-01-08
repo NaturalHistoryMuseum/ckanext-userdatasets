@@ -4,7 +4,6 @@
 # This file is part of ckanext-userdatasets
 # Created by the Natural History Museum in London, UK
 
-from ckanext.userdatasets.lib.helpers import get_default_auth
 from ckanext.userdatasets.logic.auth.auth import (user_is_member_of_package_org,
                                                   user_owns_package_as_member)
 
@@ -13,9 +12,10 @@ from ckan.logic.auth import get_package_object, get_resource_object
 from ckan.plugins import toolkit
 
 
-def package_create(context, data_dict):
+@toolkit.chained_auth_function
+def package_create(next_auth, context, data_dict):
     '''
-
+    :param next_auth:
     :param context:
     :param data_dict:
 
@@ -37,8 +37,7 @@ def package_create(context, data_dict):
                 u'success': True
                 }
 
-    fallback = get_default_auth(u'create', u'package_create')
-    return fallback(context, data_dict)
+    return next_auth(context, data_dict)
 
 
 @toolkit.chained_auth_function
@@ -50,7 +49,9 @@ def resource_create(next_auth, context, data_dict):
 
     '''
     user = context[u'auth_user_obj']
-    package = get_package_object(context, {u'id': data_dict[u'package_id']})
+    package = get_package_object(context, {
+        u'id': data_dict[u'package_id']
+        })
     if user_owns_package_as_member(user, package):
         return {
             u'success': True
@@ -62,9 +63,10 @@ def resource_create(next_auth, context, data_dict):
     return next_auth(context, data_dict)
 
 
-def resource_view_create(context, data_dict):
+@toolkit.chained_auth_function
+def resource_view_create(next_auth, context, data_dict):
     '''
-
+    :param next_auth:
     :param context:
     :param data_dict:
 
@@ -95,5 +97,4 @@ def resource_view_create(context, data_dict):
             u'success': False
             }
 
-    fallback = get_default_auth(u'create', u'resource_view_create')
-    return fallback(context, data_dict)
+    return next_auth(context, data_dict)
