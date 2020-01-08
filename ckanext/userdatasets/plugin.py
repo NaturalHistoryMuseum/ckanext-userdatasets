@@ -5,6 +5,7 @@
 # Created by the Natural History Museum in London, UK
 
 import importlib
+from .logic.action.update import package_update
 
 from ckan.plugins import SingletonPlugin, implements, interfaces, toolkit
 
@@ -52,11 +53,12 @@ class UserDatasetsPlugin(SingletonPlugin):
 
     def get_actions(self):
         '''Implementation of IActions.get_actions'''
-        actions = {}
+        actions = {
+            u'package_update': package_update
+            }
         # Override selected actions.
         to_override = [
             (u'create', [u'package_create']),
-            (u'update', [u'package_update']),
             (u'get', [u'organization_list_for_user'])
             ]
         for override in to_override:

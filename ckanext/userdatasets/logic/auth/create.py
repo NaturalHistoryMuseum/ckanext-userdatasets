@@ -10,6 +10,7 @@ from ckanext.userdatasets.logic.auth.auth import (user_is_member_of_package_org,
 
 from ckan.authz import has_user_permission_for_some_org, users_role_for_group_or_org
 from ckan.logic.auth import get_package_object, get_resource_object
+from ckan.plugins import toolkit
 
 
 def package_create(context, data_dict):
@@ -40,7 +41,8 @@ def package_create(context, data_dict):
     return fallback(context, data_dict)
 
 
-def resource_create(context, data_dict):
+@toolkit.chained_auth_function
+def resource_create(next_auth, context, data_dict):
     '''
 
     :param context:
@@ -48,9 +50,7 @@ def resource_create(context, data_dict):
 
     '''
     user = context[u'auth_user_obj']
-    if data_dict.get(u'package_id') is not None:
-        data_dict[u'id'] = data_dict[u'package_id']
-    package = get_package_object(context, data_dict)
+    package = get_package_object(context, {u'id': data_dict[u'package_id']})
     if user_owns_package_as_member(user, package):
         return {
             u'success': True
@@ -59,9 +59,7 @@ def resource_create(context, data_dict):
         return {
             u'success': False
             }
-
-    fallback = get_default_auth(u'create', u'resource_create')
-    return fallback(context, data_dict)
+    return next_auth(context, data_dict)
 
 
 def resource_view_create(context, data_dict):
