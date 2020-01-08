@@ -4,12 +4,13 @@
 # This file is part of ckanext-userdatasets
 # Created by the Natural History Museum in London, UK
 
-from ckanext.userdatasets.lib.helpers import get_default_action
+from ckan.plugins import toolkit
 
 
-def organization_list_for_user(context, data_dict):
+@toolkit.chained_action
+def organization_list_for_user(next_action, context, data_dict):
     '''
-
+    :param next_action:
     :param context:
     :param data_dict:
 
@@ -20,7 +21,6 @@ def organization_list_for_user(context, data_dict):
         # 'read' which will be granted to all members of a group.
         data_dict = dict(data_dict.items() + {
             u'permission': u'read'
-        }.items())
+            }.items())
 
-    fallback = get_default_action(u'get', u'organization_list_for_user')
-    return fallback(context, data_dict)
+    return next_action(context, data_dict)

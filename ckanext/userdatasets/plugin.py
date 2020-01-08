@@ -28,43 +28,36 @@ class UserDatasetsPlugin(SingletonPlugin):
         :param main_config:
 
         '''
-        toolkit.config[u'default_auth_module'] = toolkit.config.get(u'userdatasets.default_auth_module',
-                                                    u'ckan.logic.auth')
+        toolkit.config[u'default_auth_module'] = toolkit.config.get(
+            u'userdatasets.default_auth_module',
+            u'ckan.logic.auth')
         toolkit.config[u'default_action_module'] = toolkit.config.get(
             u'userdatasets.default_action_module', u'ckan.logic.action')
 
     def get_auth_functions(self):
         '''Implementation of IAuthFunctions.get_auth_functions'''
-        # We override all of create/update/delete for packages, resources and
-        # resource views.
         auth_functions = {}
         for action in [u'create', u'update', u'delete']:
-            default_module = importlib.import_module(
-                toolkit.config[u'default_auth_module'] + u'.' + action)
             uds_module = importlib.import_module(
                 u'ckanext.userdatasets.logic.auth.' + action)
             for atype in [u'package', u'resource', u'resource_view']:
                 fn_name = atype + u'_' + action
-                if hasattr(default_module, fn_name) and hasattr(uds_module, fn_name):
+                if hasattr(uds_module, fn_name):
                     auth_functions[fn_name] = getattr(uds_module, fn_name)
-
         return auth_functions
 
     def get_actions(self):
         '''Implementation of IActions.get_actions'''
         actions = {}
         # Override selected actions.
-        to_override = [
-            (u'create', [u'package_create']),
-            (u'update', [u'package_update']),
-            (u'get', [u'organization_list_for_user'])
-            ]
-        for override in to_override:
+        to_override = {
+            u'create': [u'package_create'],
+            u'update': [u'package_update'],
+            u'get': [u'organization_list_for_user']
+            }
+        for action_type, action in to_override.items():
             uds_module = importlib.import_module(
-                u'ckanext.userdatasets.logic.action.' + override[0])
-            for fn_name in override[1]:
+                u'ckanext.userdatasets.logic.action.' + action_type)
+            for fn_name in action:
                 actions[fn_name] = getattr(uds_module, fn_name)
-
         return actions
-
-
