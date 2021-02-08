@@ -21,6 +21,6 @@ def organization_list_for_user(next_action, context, data_dict):
         # 'read' which will be granted to all members of a group.
         data_dict = dict(data_dict.items() + {
             u'permission': u'read'
-            }.items())
+        }.items())
 
     return next_action(context, data_dict)

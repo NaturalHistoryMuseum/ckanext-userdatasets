@@ -6,11 +6,10 @@
 
 import logging
 
-from ckanext.userdatasets.logic.validators import owner_org_validator
-
 import ckan.lib.plugins as lib_plugins
 from ckan.logic.validators import owner_org_validator as default_owner_org_validator
 from ckan.plugins import toolkit
+from ckanext.userdatasets.logic.validators import owner_org_validator
 
 log = logging.getLogger(u'ckanext.userdatasets')
 
