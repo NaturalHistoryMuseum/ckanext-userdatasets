@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # encoding: utf-8
 #
 # This file is part of ckanext-userdatasets
@@ -6,38 +6,40 @@
 
 from setuptools import find_packages, setup
 
-__version__ = u'1.0.0-alpha'
+__version__ = '1.0.1'
 
-with open(u'README.md', u'r') as f:
+with open('README.md', 'r') as f:
     __long_description__ = f.read()
 
 setup(
-    name=u'ckanext-userdatasets',
+    name='ckanext-userdatasets',
     version=__version__,
-    description=u'A CKAN extension that allows organisation members to create datasets, and edit '
-                u'or delete the datasets they have created.',
+    description='A CKAN extension that allows organisation members to create datasets, and edit '
+                'or delete the datasets they have created.',
     long_description=__long_description__,
     classifiers=[
-        u'Development Status :: 3 - Alpha',
-        u'Framework :: Flask',
-        u'Programming Language :: Python :: 2.7'
-        ],
-    keywords=u'CKAN data userdatasets',
-    author=u'Natural History Museum',
-    author_email=u'data@nhm.ac.uk',
-    url=u'https://github.com/NaturalHistoryMuseum/ckanext-userdatasets',
-    license=u'GNU GPLv3',
-    packages=find_packages(exclude=[u'tests']),
-    namespace_packages=[u'ckanext', u'ckanext.userdatasets'],
+        'Development Status :: 5 - Production/Stable',
+        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 3 :: Only',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+    ],
+    keywords='CKAN data userdatasets',
+    author='Natural History Museum',
+    author_email='data@nhm.ac.uk',
+    url='https://github.com/NaturalHistoryMuseum/ckanext-userdatasets',
+    license='GNU GPLv3',
+    packages=find_packages(exclude=['tests']),
+    namespace_packages=['ckanext', 'ckanext.userdatasets'],
     include_package_data=True,
     zip_safe=False,
-    install_requires=[
-        u'importlib',
-        ],
+    install_requires=[],
     entry_points= \
-        u'''
+        '''
         [ckan.plugins]
             userdatasets=ckanext.userdatasets.plugin:UserDatasetsPlugin
 
         ''',
-    )
+)

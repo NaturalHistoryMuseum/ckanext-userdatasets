@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # encoding: utf-8
 #
 # This file is part of ckanext-userdatasets
@@ -21,7 +21,7 @@ def user_is_member_of_package_org(user, package):
     '''
     if package.owner_org:
         role_in_org = users_role_for_group_or_org(package.owner_org, user.name)
-        if role_in_org == u'member':
+        if role_in_org == 'member':
             return True
     return False
 
@@ -45,23 +45,23 @@ def user_owns_package_as_member(user, package):
 def get_resource_view_object(context, data_dict):
     '''
 
-    :param context: 
-    :param data_dict: 
+    :param context:
+    :param data_dict:
 
     '''
     try:
-        return context[u'resource_view']
+        return context['resource_view']
     except KeyError:
-        model = context[u'model']
+        model = context['model']
         if not data_dict:
             data_dict = {}
-        id = data_dict.get(u'id', None)
+        id = data_dict.get('id', None)
         if not id:
-            raise toolkit.ValidationError(u'Missing id, can not get {0} object'
-                                          .format(u'ResourceView'))
-        obj = getattr(model, u'ResourceView').get(id)
+            raise toolkit.ValidationError('Missing id, can not get {0} object'
+                                          .format('ResourceView'))
+        obj = getattr(model, 'ResourceView').get(id)
         if not obj:
             raise toolkit.ObjectNotFound
         # Save in case we need this again during the request
-        context[u'resource_view'] = obj
+        context['resource_view'] = obj
         return obj

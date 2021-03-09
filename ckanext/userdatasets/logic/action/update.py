@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # encoding: utf-8
 #
 # This file is part of ckanext-userdatasets
@@ -6,13 +6,12 @@
 
 import logging
 
-from ckanext.userdatasets.logic.validators import owner_org_validator
-
 import ckan.lib.plugins as lib_plugins
 from ckan.logic.validators import owner_org_validator as default_owner_org_validator
 from ckan.plugins import toolkit
+from ckanext.userdatasets.logic.validators import owner_org_validator
 
-log = logging.getLogger(u'ckanext.userdatasets')
+log = logging.getLogger('ckanext.userdatasets')
 
 
 @toolkit.chained_action
@@ -23,26 +22,25 @@ def package_update(next_action, context, data_dict):
     :param data_dict:
 
     '''
-    model = context[u'model']
-    name_or_id = data_dict.get(u'id') or data_dict.get(u'name')
+    model = context['model']
+    name_or_id = data_dict.get('id') or data_dict.get('name')
 
     pkg = model.Package.get(name_or_id)
     if pkg is None:
-        raise toolkit.ObjectNotFound(toolkit._(u'Package was not found.'))
+        raise toolkit.ObjectNotFound(toolkit._('Package was not found.'))
 
-    toolkit.check_access(u'package_update', context, data_dict)
+    toolkit.check_access('package_update', context, data_dict)
 
     # get the schema
     package_plugin = lib_plugins.lookup_package_plugin(pkg.type)
-    if u'schema' in context:
-        schema = context[u'schema']
+    if 'schema' in context:
+        schema = context['schema']
     else:
         schema = package_plugin.update_package_schema()
     # We modify the schema here to replace owner_org_validator by our own
-    if u'owner_org' in schema:
-        schema[u'owner_org'] = [
-            owner_org_validator if f is default_owner_org_validator else f for f in
-            schema[u'owner_org']]
-    context[u'schema'] = schema
+    if 'owner_org' in schema:
+        schema['owner_org'] = [owner_org_validator if f is default_owner_org_validator else f
+                               for f in schema['owner_org']]
+    context['schema'] = schema
 
     return next_action(context, data_dict)
