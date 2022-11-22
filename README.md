@@ -1,3 +1,4 @@
+<!--header-start-->
 <img src=".github/nhm-logo.svg" align="left" width="150px" height="100px" hspace="40"/>
 
 # ckanext-userdatasets
@@ -10,9 +11,11 @@
 
 _A CKAN extension that allows organisation members to create datasets, and edit or delete the datasets they have created._
 
+<!--header-end-->
 
 # Overview
 
+<!--overview-start-->
 This extension changes the permissions of users with the 'Member' role in an organisation, allowing them to create
 datasets, and to edit or delete the datasets they have created. Unlike users with the 'Editor' role, they cannot
 edit or delete datasets created by other users.
@@ -27,9 +30,11 @@ Notes:
  safe and should only be used AT YOUR OWN RISK in a trusted environment. Ensure you run the tests with your plugins
  enabled.**
 
+<!--overview-end-->
 
 # Installation
 
+<!--installation-start-->
 Path variables used below:
 - `$INSTALL_FOLDER` (i.e. where CKAN is installed), e.g. `/usr/lib/ckan/default`
 - `$CONFIG_FILE`, e.g. `/etc/ckan/default/development.ini`
@@ -67,12 +72,18 @@ Path variables used below:
   ckan.plugins = ... userdatasets
   ```
 
+<!--installation-end-->
+
 # Configuration
 
+<!--configuration-start-->
 There are no configuration options for this extension.
+
+<!--configuration-end-->
 
 # Usage
 
+<!--usage-start-->
 ## Actions
 
 No new actions are defined in this extension; three are overridden to modify validators and permissions.
@@ -83,9 +94,11 @@ No new actions are defined in this extension; three are overridden to modify val
 
 ### `organization_list_for_user`
 
+<!--usage-end-->
 
 # Testing
 
+<!--testing-start-->
 There is a Docker compose configuration available in this repository to make it easier to run tests.
 
 To run the tests against ckan 2.9.x on Python3:
@@ -107,3 +120,5 @@ The ckan image uses the Dockerfile in the `docker/` folder.
 
 Note that currently the tests mock the Datacite API and therefore don't require an internet
 connection nor your Datacite credentials to run.
+
+<!--testing-end-->
