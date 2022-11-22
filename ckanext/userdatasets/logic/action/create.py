@@ -30,8 +30,10 @@ def package_create(next_action, context, data_dict):
         schema = package_plugin.create_package_schema()
     # We modify the schema here to replace owner_org_validator by our own
     if 'owner_org' in schema:
-        schema['owner_org'] = [owner_org_validator if f is default_owner_org_validator
-                               else f for f in schema['owner_org']]
+        schema['owner_org'] = [
+            owner_org_validator if f is default_owner_org_validator else f
+            for f in schema['owner_org']
+        ]
     context['schema'] = schema
 
     return next_action(context, data_dict)
