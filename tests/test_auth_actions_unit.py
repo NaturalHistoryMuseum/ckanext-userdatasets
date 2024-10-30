@@ -4,7 +4,7 @@
 # This file is part of ckanext-userdatasets
 # Created by the Natural History Museum in London, UK
 
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 from ckanext.userdatasets.logic.auth.auth import (
     user_is_member_of_package_org,
