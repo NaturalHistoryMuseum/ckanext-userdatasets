@@ -5,20 +5,11 @@
 # Created by the Natural History Museum in London, UK
 
 from ckan.authz import users_role_for_group_or_org
-
 from ckan.logic.validators import owner_org_validator as default_owner_org_validator
 from ckan.plugins import toolkit
 
 
 def owner_org_validator(key, data, errors, context):
-    '''
-
-    :param key:
-    :param data:
-    :param errors:
-    :param context:
-
-    '''
     owner_org = data.get(key)
     if owner_org is not toolkit.missing and owner_org is not None and owner_org != '':
         if context.get('auth_user_obj', None) is not None:
