@@ -16,12 +16,6 @@ from ckanext.userdatasets.logic.auth.auth import (
 
 @toolkit.chained_auth_function
 def package_delete(next_auth, context, data_dict):
-    '''
-    :param next_auth:
-    :param context:
-    :param data_dict:
-
-    '''
     user = context['auth_user_obj']
     package = get_package_object(context, data_dict)
 
@@ -33,12 +27,6 @@ def package_delete(next_auth, context, data_dict):
 
 @toolkit.chained_auth_function
 def resource_delete(next_auth, context, data_dict):
-    '''
-    :param next_auth:
-    :param context:
-    :param data_dict:
-
-    '''
     user = context['auth_user_obj']
     resource = get_resource_object(context, data_dict)
     package = resource.package
@@ -52,12 +40,6 @@ def resource_delete(next_auth, context, data_dict):
 
 @toolkit.chained_auth_function
 def resource_view_delete(next_auth, context, data_dict):
-    '''
-    :param next_auth:
-    :param context:
-    :param data_dict:
-
-    '''
     user = context['auth_user_obj']
     resource_view = get_resource_view_object(context, data_dict)
     resource = get_resource_object(context, {'id': resource_view.resource_id})

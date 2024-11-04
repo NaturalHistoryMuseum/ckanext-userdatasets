@@ -16,12 +16,6 @@ from ckanext.userdatasets.logic.auth.auth import (
 
 @toolkit.chained_auth_function
 def package_create(next_auth, context, data_dict):
-    '''
-    :param next_auth:
-    :param context:
-    :param data_dict:
-
-    '''
     user = context['auth_user_obj']
     if data_dict and 'owner_org' in data_dict:
         role = users_role_for_group_or_org(data_dict['owner_org'], user.name)
@@ -40,12 +34,6 @@ def package_create(next_auth, context, data_dict):
 
 @toolkit.chained_auth_function
 def resource_create(next_auth, context, data_dict):
-    '''
-
-    :param context:
-    :param data_dict:
-
-    '''
     user = context['auth_user_obj']
     package = get_package_object(context, {'id': data_dict['package_id']})
     if user_owns_package_as_member(user, package):
@@ -57,12 +45,6 @@ def resource_create(next_auth, context, data_dict):
 
 @toolkit.chained_auth_function
 def resource_view_create(next_auth, context, data_dict):
-    '''
-    :param next_auth:
-    :param context:
-    :param data_dict:
-
-    '''
     user = context['auth_user_obj']
     # data_dict provides 'resource_id', while get_resource_object expects 'id'. This is
     # not consistent with the rest of the API - so future proof it by catering for both
