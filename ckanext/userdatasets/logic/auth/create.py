@@ -34,7 +34,18 @@ def package_create(next_auth, context, data_dict):
 @toolkit.chained_auth_function
 def resource_create(next_auth, context, data_dict):
     user = context['auth_user_obj']
-    package = get_package_object(context, {'id': data_dict['package_id']})
+
+    # can be routed from other auths without changing the params correctly
+    package_id = data_dict.get('package_id')
+    if not package_id and data_dict.get('id'):
+        resource = get_resource_object(context, data_dict)
+        package_id = resource.package_id
+    if not package_id:
+        raise toolkit.ValidationError(
+            toolkit._('No dataset id provided, cannot check auth.')
+        )
+
+    package = get_package_object(context, {'id': package_id})
     if user_owns_package_as_member(user, package):
         return {'success': True}
     return next_auth(context, data_dict)
