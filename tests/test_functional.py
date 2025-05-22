@@ -224,3 +224,67 @@ class TestFuncResourceViews(object):
                     'view_type': 'image_view',
                 },
             )
+
+    @pytest.mark.ckan_config('ckan.auth.allow_dataset_collaborators', 'true')
+    @pytest.mark.ckan_config('ckan.auth.allow_admin_collaborators', 'true')
+    def test_collaborators_can_edit(self, org, member_1):
+        package = create_package(org, member_1)
+        resource = factories.Resource(package_id=package['id'])
+        resource_view = factories.ResourceView(resource_id=resource['id'])
+
+        new_desc = 'description for test_collaborators_can_edit'
+
+        # new collaborator user
+        member_3 = factories.User(name='test_member_3')
+        call_action(
+            'organization_member_create',
+            id=org['id'],
+            username=member_3['name'],
+            role='member',
+        )
+
+        context = {'user': member_3['name']}
+
+        # check that they can't update before collaborator permissions are added
+        with pytest.raises(toolkit.NotAuthorized):
+            toolkit.get_action('resource_view_update')(
+                context,
+                {
+                    'id': resource_view['id'],
+                    'resource_id': resource['id'],
+                    'description': new_desc,
+                },
+            )
+
+        # collaborator permissions themselves are tested elsewhere - we're just testing
+        # if they differ from regular org members, so use the highest possible role
+        call_action(
+            'package_collaborator_create',
+            id=package['id'],
+            user_id=member_3['id'],
+            capacity='admin',
+        )
+
+        resource_view_updated = toolkit.get_action('resource_view_update')(
+            context,
+            {
+                'id': resource_view['id'],
+                'resource_id': resource['id'],
+                'description': new_desc,
+            },
+        )
+        assert resource_view_updated['description'] == new_desc
+
+        toolkit.get_action('resource_view_delete')(
+            context, {'id': resource_view['id'], 'resource_id': resource['id']}
+        )
+
+        resource_view_created = toolkit.get_action('resource_view_create')(
+            context,
+            {
+                'resource_id': resource['id'],
+                'title': 'beans!',
+                'view_type': 'image_view',
+            },
+        )
+        assert resource_view_created['title'] == 'beans!'
