@@ -192,13 +192,13 @@ class TestFuncResourceViews(object):
         assert resource_view_updated['description'] == new_desc
         assert resource_view['description'] != resource_view_updated['description']
 
-    def test_members_cannot_edit_others_resource_views(self, org, member_1, member_2):
+    def test_members_no_special_privileges(self, org, member_1, member_2):
         package = create_package(org, member_1)
         resource = factories.Resource(package_id=package['id'])
         resource_view = factories.ResourceView(resource_id=resource['id'])
 
         context = {'user': member_2['name']}
-        new_desc = 'description for test_members_cannot_edit_others_resource_views'
+        new_desc = 'description for test_members_no_special_privileges'
 
         with pytest.raises(toolkit.NotAuthorized):
             toolkit.get_action('resource_view_update')(
