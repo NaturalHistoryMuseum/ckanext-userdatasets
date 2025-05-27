@@ -162,12 +162,9 @@ class TestAuthActionsUnit(object):
             result = package_create(mock_default_auth, t['context'], t['data_dict'])
             assert result == t['result']
 
-    @patch('ckanext.userdatasets.logic.auth.create.user_is_member_of_package_org')
     @patch('ckanext.userdatasets.logic.auth.create.user_owns_package_as_member')
     @patch('ckanext.userdatasets.logic.auth.create.get_package_object')
-    def test_resource_create(
-        self, mock_get_package, mock_user_owns, mock_user_is_member
-    ):
+    def test_resource_create(self, mock_get_package, mock_user_owns):
         """
         Test ckanext.userdatasets.logic.auth.create.resource_create.
 
@@ -175,25 +172,21 @@ class TestAuthActionsUnit(object):
         """
         tests = [
             {'user_owns': True, 'user_is_member': True, 'result': {'success': True}},
-            {'user_owns': False, 'user_is_member': True, 'result': {'success': False}},
+            {'user_owns': False, 'user_is_member': True, 'result': 'fallback'},
             {'user_owns': False, 'user_is_member': False, 'result': 'fallback'},
         ]
         mock_get_package.return_value = 1
         for t in tests:
             mock_user_owns.return_value = t['user_owns']
-            mock_user_is_member.return_value = t['user_is_member']
             mock_default_auth = MagicMock(return_value='fallback')
             result = resource_create(
                 mock_default_auth, {'auth_user_obj': 1}, MagicMock()
             )
             assert result == t['result']
 
-    @patch('ckanext.userdatasets.logic.auth.create.user_is_member_of_package_org')
     @patch('ckanext.userdatasets.logic.auth.create.user_owns_package_as_member')
     @patch('ckanext.userdatasets.logic.auth.create.get_resource_object')
-    def test_resource_view_create(
-        self, mock_get_resource, mock_user_owns, mock_user_is_member
-    ):
+    def test_resource_view_create(self, mock_get_resource, mock_user_owns):
         """
         Test ckanext.userdatasets.logic.auth.create.resource_view_create.
 
@@ -202,13 +195,12 @@ class TestAuthActionsUnit(object):
 
         tests = [
             {'user_owns': True, 'user_is_member': True, 'result': {'success': True}},
-            {'user_owns': False, 'user_is_member': True, 'result': {'success': False}},
+            {'user_owns': False, 'user_is_member': True, 'result': 'fallback'},
             {'user_owns': False, 'user_is_member': False, 'result': 'fallback'},
         ]
         mock_get_resource.return_value = MagicMock(package=1)
         for t in tests:
             mock_user_owns.return_value = t['user_owns']
-            mock_user_is_member.return_value = t['user_is_member']
             mock_default_auth = MagicMock(return_value='fallback')
             result = resource_view_create(
                 mock_default_auth, {'auth_user_obj': 1}, {'resource_id': 1}
@@ -232,12 +224,9 @@ class TestAuthActionsUnit(object):
         result = package_update(mock_default_auth, {'auth_user_obj': 1}, MagicMock())
         assert result == 'fallback'
 
-    @patch('ckanext.userdatasets.logic.auth.update.user_is_member_of_package_org')
     @patch('ckanext.userdatasets.logic.auth.update.user_owns_package_as_member')
     @patch('ckanext.userdatasets.logic.auth.update.get_resource_object')
-    def test_resource_update(
-        self, mock_get_resource, mock_user_owns, mock_user_is_member
-    ):
+    def test_resource_update(self, mock_get_resource, mock_user_owns):
         """
         Test ckanext.userdatasets.logic.auth.create.resource_update.
 
@@ -245,29 +234,23 @@ class TestAuthActionsUnit(object):
         """
         tests = [
             {'user_owns': True, 'user_is_member': True, 'result': {'success': True}},
-            {'user_owns': False, 'user_is_member': True, 'result': {'success': False}},
+            {'user_owns': False, 'user_is_member': True, 'result': 'fallback'},
             {'user_owns': False, 'user_is_member': False, 'result': 'fallback'},
         ]
         mock_get_resource.return_value = MagicMock(package=1)
         for t in tests:
             mock_user_owns.return_value = t['user_owns']
-            mock_user_is_member.return_value = t['user_is_member']
             mock_default_auth = MagicMock(return_value='fallback')
             assert (
                 resource_update(mock_default_auth, {'auth_user_obj': 1}, {})
                 == t['result']
             )
 
-    @patch('ckanext.userdatasets.logic.auth.update.user_is_member_of_package_org')
     @patch('ckanext.userdatasets.logic.auth.update.user_owns_package_as_member')
     @patch('ckanext.userdatasets.logic.auth.update.get_resource_object')
     @patch('ckanext.userdatasets.logic.auth.update.get_resource_view_object')
     def test_resource_view_update(
-        self,
-        mock_get_resource_view,
-        mock_get_resource,
-        mock_user_owns,
-        mock_user_is_member,
+        self, mock_get_resource_view, mock_get_resource, mock_user_owns
     ):
         """
         Test ckanext.userdatasets.logic.auth.create.resource_view_update.
@@ -276,14 +259,13 @@ class TestAuthActionsUnit(object):
         """
         tests = [
             {'user_owns': True, 'user_is_member': True, 'result': {'success': True}},
-            {'user_owns': False, 'user_is_member': True, 'result': {'success': False}},
+            {'user_owns': False, 'user_is_member': True, 'result': 'fallback'},
             {'user_owns': False, 'user_is_member': False, 'result': 'fallback'},
         ]
         mock_get_resource_view.return_value = MagicMock(resource_id=1)
         mock_get_resource.return_value = MagicMock(package=1)
         for t in tests:
             mock_user_owns.return_value = t['user_owns']
-            mock_user_is_member.return_value = t['user_is_member']
             mock_default_auth = MagicMock(return_value='fallback')
             result = resource_view_update(
                 mock_default_auth, {'auth_user_obj': 1}, {'resource_id': 1}
@@ -307,12 +289,9 @@ class TestAuthActionsUnit(object):
         mock_user_owns.return_value = False
         assert package_delete(mock_default_auth, {'auth_user_obj': 1}, {}) == 'fallback'
 
-    @patch('ckanext.userdatasets.logic.auth.delete.user_is_member_of_package_org')
     @patch('ckanext.userdatasets.logic.auth.delete.user_owns_package_as_member')
     @patch('ckanext.userdatasets.logic.auth.delete.get_resource_object')
-    def test_resource_delete(
-        self, mock_get_resource, mock_user_owns, mock_user_is_member
-    ):
+    def test_resource_delete(self, mock_get_resource, mock_user_owns):
         """
         Test ckanext.userdatasets.logic.auth.create.resource_delete.
 
@@ -320,20 +299,18 @@ class TestAuthActionsUnit(object):
         """
         tests = [
             {'user_owns': True, 'user_is_member': True, 'result': {'success': True}},
-            {'user_owns': False, 'user_is_member': True, 'result': {'success': False}},
+            {'user_owns': False, 'user_is_member': True, 'result': 'fallback'},
             {'user_owns': False, 'user_is_member': False, 'result': 'fallback'},
         ]
         mock_get_resource.return_value = MagicMock(package=1)
         for t in tests:
             mock_user_owns.return_value = t['user_owns']
-            mock_user_is_member.return_value = t['user_is_member']
             mock_default_auth = MagicMock(return_value='fallback')
             assert (
                 resource_delete(mock_default_auth, {'auth_user_obj': 1}, {})
                 == t['result']
             )
 
-    @patch('ckanext.userdatasets.logic.auth.delete.user_is_member_of_package_org')
     @patch('ckanext.userdatasets.logic.auth.delete.user_owns_package_as_member')
     @patch('ckanext.userdatasets.logic.auth.delete.get_resource_object')
     @patch('ckanext.userdatasets.logic.auth.delete.get_resource_view_object')
@@ -342,7 +319,6 @@ class TestAuthActionsUnit(object):
         mock_get_resource_view,
         mock_get_resource,
         mock_user_owns,
-        mock_user_is_member,
     ):
         """
         Test ckanext.userdatasets.logic.auth.create.resource_view_delete.
@@ -351,14 +327,13 @@ class TestAuthActionsUnit(object):
         """
         tests = [
             {'user_owns': True, 'user_is_member': True, 'result': {'success': True}},
-            {'user_owns': False, 'user_is_member': True, 'result': {'success': False}},
+            {'user_owns': False, 'user_is_member': True, 'result': 'fallback'},
             {'user_owns': False, 'user_is_member': False, 'result': 'fallback'},
         ]
         mock_get_resource_view.return_value = MagicMock(resource_id=1)
         mock_get_resource.return_value = MagicMock(package=1)
         for t in tests:
             mock_user_owns.return_value = t['user_owns']
-            mock_user_is_member.return_value = t['user_is_member']
             mock_default_auth = MagicMock(return_value='fallback')
             result = resource_view_delete(
                 mock_default_auth, {'auth_user_obj': 1}, {'resource_id': 1}
