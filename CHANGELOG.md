@@ -1,5 +1,17 @@
 # Changelog
 
+## v2.1.11 (2025-05-27)
+
+### Fix
+
+- get package id from deferred auth
+- remove package member default auth
+
+### Tests
+
+- add test for collaborator permissions override
+- fix tests after org member permissions change
+
 ## v2.1.10 (2024-11-04)
 
 ### Docs
