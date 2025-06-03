@@ -9,12 +9,14 @@ import logging
 import ckan.lib.plugins as lib_plugins
 from ckan.logic.validators import owner_org_validator as default_owner_org_validator
 from ckan.plugins import toolkit
+from ckantools.decorators import basic_action
 
 from ckanext.userdatasets.logic.validators import owner_org_validator
 
 log = logging.getLogger('ckanext.userdatasets')
 
 
+@basic_action
 @toolkit.chained_action
 def package_update(next_action, context, data_dict):
     model = context['model']
