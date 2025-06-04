@@ -11,15 +11,18 @@ from ckanext.userdatasets.logic.auth.auth import (
     user_owns_package_as_member,
 )
 from ckanext.userdatasets.logic.auth.create import (
+    package_collaborator_create,
     package_create,
     resource_create,
     resource_view_create,
 )
 from ckanext.userdatasets.logic.auth.delete import (
+    package_collaborator_delete,
     package_delete,
     resource_delete,
     resource_view_delete,
 )
+from ckanext.userdatasets.logic.auth.get import package_collaborator_list
 from ckanext.userdatasets.logic.auth.update import (
     package_update,
     resource_update,
@@ -207,6 +210,28 @@ class TestAuthActionsUnit(object):
             )
             assert result == t['result']
 
+    @patch('ckanext.userdatasets.logic.auth.create.user_owns_package_as_member')
+    @patch('ckanext.userdatasets.logic.auth.create.get_package_object')
+    def test_package_collaborator_create(self, mock_get_package, mock_user_owns):
+        """
+        Test ckanext.userdatasets.logic.auth.create.package_collaborator_create.
+
+        Ensure all routes are tested.
+        """
+        tests = [
+            {'user_owns': True, 'user_is_member': True, 'result': {'success': True}},
+            {'user_owns': False, 'user_is_member': True, 'result': 'fallback'},
+            {'user_owns': False, 'user_is_member': False, 'result': 'fallback'},
+        ]
+        mock_get_package.return_value = 1
+        for t in tests:
+            mock_user_owns.return_value = t['user_owns']
+            mock_default_auth = MagicMock(return_value='fallback')
+            result = package_collaborator_create(
+                mock_default_auth, {'auth_user_obj': 1}, MagicMock()
+            )
+            assert result == t['result']
+
     @patch('ckanext.userdatasets.logic.auth.update.user_owns_package_as_member')
     @patch('ckanext.userdatasets.logic.auth.update.get_package_object')
     def test_package_update(self, mock_get_package, mock_user_owns):
@@ -337,5 +362,49 @@ class TestAuthActionsUnit(object):
             mock_default_auth = MagicMock(return_value='fallback')
             result = resource_view_delete(
                 mock_default_auth, {'auth_user_obj': 1}, {'resource_id': 1}
+            )
+            assert result == t['result']
+
+    @patch('ckanext.userdatasets.logic.auth.delete.user_owns_package_as_member')
+    @patch('ckanext.userdatasets.logic.auth.delete.get_package_object')
+    def test_package_collaborator_delete(self, mock_get_package, mock_user_owns):
+        """
+        Test ckanext.userdatasets.logic.auth.delete.package_collaborator_delete.
+
+        Ensure both success and failure routes are tested.
+        """
+        tests = [
+            {'user_owns': True, 'user_is_member': True, 'result': {'success': True}},
+            {'user_owns': False, 'user_is_member': True, 'result': 'fallback'},
+            {'user_owns': False, 'user_is_member': False, 'result': 'fallback'},
+        ]
+        mock_get_package.return_value = 1
+        for t in tests:
+            mock_user_owns.return_value = t['user_owns']
+            mock_default_auth = MagicMock(return_value='fallback')
+            result = package_collaborator_delete(
+                mock_default_auth, {'auth_user_obj': 1}, MagicMock()
+            )
+            assert result == t['result']
+
+    @patch('ckanext.userdatasets.logic.auth.get.user_owns_package_as_member')
+    @patch('ckanext.userdatasets.logic.auth.get.get_package_object')
+    def test_package_collaborator_list(self, mock_get_package, mock_user_owns):
+        """
+        Test ckanext.userdatasets.logic.auth.get.package_collaborator_list.
+
+        Ensure both success and failure routes are tested.
+        """
+        tests = [
+            {'user_owns': True, 'user_is_member': True, 'result': {'success': True}},
+            {'user_owns': False, 'user_is_member': True, 'result': 'fallback'},
+            {'user_owns': False, 'user_is_member': False, 'result': 'fallback'},
+        ]
+        mock_get_package.return_value = 1
+        for t in tests:
+            mock_user_owns.return_value = t['user_owns']
+            mock_default_auth = MagicMock(return_value='fallback')
+            result = package_collaborator_list(
+                mock_default_auth, {'auth_user_obj': 1}, MagicMock()
             )
             assert result == t['result']
