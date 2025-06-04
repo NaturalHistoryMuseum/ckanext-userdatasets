@@ -48,3 +48,16 @@ def resource_view_delete(next_auth, context, data_dict):
         return {'success': True}
 
     return next_auth(context, data_dict)
+
+
+@auth()
+@toolkit.chained_auth_function
+def package_collaborator_delete(next_auth, context, data_dict):
+    user = context['auth_user_obj']
+
+    package_id = data_dict.get('id')
+    package = get_package_object(context, {'id': package_id})
+    if user_owns_package_as_member(user, package):
+        return {'success': True}
+
+    return next_auth(context, data_dict)

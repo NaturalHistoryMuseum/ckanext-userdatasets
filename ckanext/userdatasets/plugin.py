@@ -26,9 +26,9 @@ class UserDatasetsPlugin(SingletonPlugin):
         """
         Implementation of IAuthFunctions.get_auth_functions.
         """
-        from ckanext.userdatasets.logic.auth import create, delete, update
+        from ckanext.userdatasets.logic.auth import create, delete, get, update
 
-        auth = create_auth(create, delete, update)
+        auth = create_auth(create, delete, update, get)
         return auth
 
     # IActions
