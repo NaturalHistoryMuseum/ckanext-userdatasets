@@ -6,6 +6,7 @@
 
 from ckan.logic.auth import get_package_object, get_resource_object
 from ckan.plugins import toolkit
+from ckantools.decorators import auth
 
 from ckanext.userdatasets.logic.auth.auth import (
     get_resource_view_object,
@@ -13,6 +14,7 @@ from ckanext.userdatasets.logic.auth.auth import (
 )
 
 
+@auth()
 @toolkit.chained_auth_function
 def package_delete(next_auth, context, data_dict):
     user = context['auth_user_obj']
@@ -24,6 +26,7 @@ def package_delete(next_auth, context, data_dict):
     return next_auth(context, data_dict)
 
 
+@auth()
 @toolkit.chained_auth_function
 def resource_delete(next_auth, context, data_dict):
     user = context['auth_user_obj']
@@ -35,12 +38,26 @@ def resource_delete(next_auth, context, data_dict):
     return next_auth(context, data_dict)
 
 
+@auth()
 @toolkit.chained_auth_function
 def resource_view_delete(next_auth, context, data_dict):
     user = context['auth_user_obj']
     resource_view = get_resource_view_object(context, data_dict)
     resource = get_resource_object(context, {'id': resource_view.resource_id})
     if user_owns_package_as_member(user, resource.package):
+        return {'success': True}
+
+    return next_auth(context, data_dict)
+
+
+@auth()
+@toolkit.chained_auth_function
+def package_collaborator_delete(next_auth, context, data_dict):
+    user = context['auth_user_obj']
+
+    package_id = data_dict.get('id')
+    package = get_package_object(context, {'id': package_id})
+    if user_owns_package_as_member(user, package):
         return {'success': True}
 
     return next_auth(context, data_dict)

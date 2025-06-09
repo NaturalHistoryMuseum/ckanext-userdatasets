@@ -6,6 +6,7 @@
 
 from ckan.logic.auth import get_package_object, get_resource_object
 from ckan.plugins import toolkit
+from ckantools.decorators import auth
 
 from ckanext.userdatasets.logic.auth.auth import (
     get_resource_view_object,
@@ -13,6 +14,7 @@ from ckanext.userdatasets.logic.auth.auth import (
 )
 
 
+@auth()
 @toolkit.chained_auth_function
 def package_update(next_auth, context, data_dict):
     user = context['auth_user_obj']
@@ -23,6 +25,7 @@ def package_update(next_auth, context, data_dict):
     return next_auth(context, data_dict)
 
 
+@auth()
 @toolkit.chained_auth_function
 def resource_update(next_auth, context, data_dict):
     user = context['auth_user_obj']
@@ -34,6 +37,7 @@ def resource_update(next_auth, context, data_dict):
     return next_auth(context, data_dict)
 
 
+@auth()
 @toolkit.chained_auth_function
 def resource_view_update(next_auth, context, data_dict):
     user = context['auth_user_obj']

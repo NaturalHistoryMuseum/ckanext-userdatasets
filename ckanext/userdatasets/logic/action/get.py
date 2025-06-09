@@ -5,8 +5,10 @@
 # Created by the Natural History Museum in London, UK
 
 from ckan.plugins import toolkit
+from ckantools.decorators import basic_action
 
 
+@basic_action
 @toolkit.chained_action
 def organization_list_for_user(next_action, context, data_dict):
     perm = data_dict.get('permission')
