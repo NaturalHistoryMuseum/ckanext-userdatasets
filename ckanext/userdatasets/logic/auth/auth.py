@@ -19,7 +19,7 @@ def user_is_member_of_package_org(user, package):
     :returns: True if the user has a valid role in the organisation that owns the
         package, False otherwise
     """
-    return package.owner_org and org_role_is_valid(package.owner_org, user.name)
+    return bool(package.owner_org) and org_role_is_valid(package.owner_org, user.name)
 
 
 def user_owns_package_as_member(user, package):

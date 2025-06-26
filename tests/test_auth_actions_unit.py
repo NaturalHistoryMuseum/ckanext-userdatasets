@@ -74,6 +74,18 @@ class TestAuthActionsUnit(object):
                 'role': 'member',
                 'result': False,
             },
+            {
+                'package': MagicMock(owner_org=''),
+                'user': MagicMock(name='turtle'),
+                'role': 'member',
+                'result': False,
+            },
+            {
+                'package': MagicMock(owner_org=False),
+                'user': MagicMock(name='turtle'),
+                'role': 'member',
+                'result': False,
+            },
         ]
         for t in tests:
             mock_users_role.return_value = t['role']
