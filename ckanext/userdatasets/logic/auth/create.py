@@ -4,7 +4,7 @@
 # This file is part of ckanext-userdatasets
 # Created by the Natural History Museum in London, UK
 
-from ckan.authz import has_user_permission_for_some_org, users_role_for_group_or_org
+from ckan.authz import has_user_permission_for_some_org
 from ckan.logic.auth import get_package_object, get_resource_object
 from ckan.plugins import toolkit
 from ckantools.decorators import auth
@@ -12,6 +12,7 @@ from ckantools.decorators import auth
 from ckanext.userdatasets.logic.auth.auth import (
     user_owns_package_as_member,
 )
+from ckanext.userdatasets.logic.utils import org_role_is_valid
 
 
 @auth()
@@ -19,8 +20,7 @@ from ckanext.userdatasets.logic.auth.auth import (
 def package_create(next_auth, context, data_dict):
     user = context['auth_user_obj']
     if data_dict and 'owner_org' in data_dict:
-        role = users_role_for_group_or_org(data_dict['owner_org'], user.name)
-        if role == 'member':
+        if org_role_is_valid(data_dict['owner_org'], user.name):
             return {'success': True}
     else:
         # If there is no organisation, then this should return success if the user can

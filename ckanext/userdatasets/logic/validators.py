@@ -4,9 +4,10 @@
 # This file is part of ckanext-userdatasets
 # Created by the Natural History Museum in London, UK
 
-from ckan.authz import users_role_for_group_or_org
 from ckan.logic.validators import owner_org_validator as default_owner_org_validator
 from ckan.plugins import toolkit
+
+from ckanext.userdatasets.logic.utils import org_role_is_valid
 
 
 def owner_org_validator(key, data, errors, context):
@@ -17,8 +18,7 @@ def owner_org_validator(key, data, errors, context):
         else:
             username = context['user']
 
-        role = users_role_for_group_or_org(owner_org, username)
-        if role == 'member':
+        if org_role_is_valid(owner_org, username):
             return
 
     default_owner_org_validator(key, data, errors, context)
