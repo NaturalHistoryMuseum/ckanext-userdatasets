@@ -35,7 +35,7 @@ class TestAuthActionsUnit(object):
     Perform unit tests on the auth functions in ckanext.userdatasets.logic.auth.
     """
 
-    @patch('ckanext.userdatasets.logic.auth.auth.users_role_for_group_or_org')
+    @patch('ckanext.userdatasets.logic.utils.users_role_for_group_or_org')
     def test_user_is_member_of_package_org(self, mock_users_role):
         """
         Test ckanext.userdatasets.logic.auth.auth.user_is_member_of_package_org.
@@ -54,6 +54,18 @@ class TestAuthActionsUnit(object):
                 'package': MagicMock(owner_org='carrot'),
                 'user': MagicMock(name='turtle'),
                 'role': 'editor',
+                'result': True,
+            },
+            {
+                'package': MagicMock(owner_org='carrot'),
+                'user': MagicMock(name='turtle'),
+                'role': 'admin',
+                'result': True,
+            },
+            {
+                'package': MagicMock(owner_org='carrot'),
+                'user': MagicMock(name='turtle'),
+                'role': None,
                 'result': False,
             },
             {
@@ -67,7 +79,7 @@ class TestAuthActionsUnit(object):
             mock_users_role.return_value = t['role']
             assert user_is_member_of_package_org(t['user'], t['package']) == t['result']
 
-    @patch('ckanext.userdatasets.logic.auth.auth.users_role_for_group_or_org')
+    @patch('ckanext.userdatasets.logic.utils.users_role_for_group_or_org')
     def test_user_owns_package_as_member(self, mock_users_role):
         """
         Test ckanext.userdatasets.logic.auth.auth.user_owns_package_as_member.
@@ -83,6 +95,12 @@ class TestAuthActionsUnit(object):
                 'result': True,
             },
             {
+                'user': MagicMock(id=444, name='turtle'),
+                'package': MagicMock(creator_user_id=444, owner_org='carrot'),
+                'role': 'editor',
+                'result': True,
+            },
+            {
                 'user': MagicMock(id=445, name='turtle'),
                 'package': MagicMock(creator_user_id=444, owner_org='carrot'),
                 'role': 'member',
@@ -90,14 +108,14 @@ class TestAuthActionsUnit(object):
             },
             {
                 'user': MagicMock(id=444, name='turtle'),
-                'package': MagicMock(creator_user_id=444, owner_org=False),
+                'package': MagicMock(creator_user_id=444, owner_org=None),
                 'role': 'member',
                 'result': False,
             },
             {
                 'user': MagicMock(id=444, name='turtle'),
                 'package': MagicMock(creator_user_id=444, owner_org='carrot'),
-                'role': 'editor',
+                'role': None,
                 'result': False,
             },
         ]
@@ -105,7 +123,7 @@ class TestAuthActionsUnit(object):
             mock_users_role.return_value = t['role']
             assert user_owns_package_as_member(t['user'], t['package']) == t['result']
 
-    @patch('ckanext.userdatasets.logic.auth.create.users_role_for_group_or_org')
+    @patch('ckanext.userdatasets.logic.utils.users_role_for_group_or_org')
     @patch('ckanext.userdatasets.logic.auth.create.has_user_permission_for_some_org')
     def test_package_create(self, mock_has_perm, mock_users_role):
         """
@@ -126,6 +144,13 @@ class TestAuthActionsUnit(object):
                 'context': {'auth_user_obj': MagicMock(name='turtle')},
                 'data_dict': {'owner_org': 'carrot'},
                 'role': 'editor',
+                'has_perm': True,
+                'result': {'success': True},
+            },
+            {
+                'context': {'auth_user_obj': MagicMock(name='turtle')},
+                'data_dict': {'owner_org': 'carrot'},
+                'role': None,
                 'has_perm': True,
                 'result': 'fallback',
             },
