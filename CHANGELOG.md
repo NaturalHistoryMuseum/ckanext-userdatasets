@@ -1,5 +1,17 @@
 # Changelog
 
+## v2.2.1 (2025-07-08)
+
+### Fix
+
+- test truthyness of package.owner_org
+- don't just test owner_org for null
+- accept org admins and editors as members
+
+### Tests
+
+- fix tests to allow editors and admins
+
 ## v2.2.0 (2025-06-09)
 
 ### Feature
