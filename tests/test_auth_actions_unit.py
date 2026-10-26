@@ -232,7 +232,6 @@ class TestAuthActionsUnit(object):
 
         Ensure all routes are tested.
         """
-
         tests = [
             {'user_owns': True, 'user_is_member': True, 'result': {'success': True}},
             {'user_owns': False, 'user_is_member': True, 'result': 'fallback'},
