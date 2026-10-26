@@ -1,5 +1,20 @@
 # Changelog
 
+## v2.2.2 (2026-10-26)
+
+### Refactor
+
+- run pre-commit and refactor all files
+
+### CI System(s)
+
+- update pre-commit config
+- update action versions update the actions to the latest versions
+
+### Chores/Misc
+
+- update team names
+
 ## v2.2.1 (2025-07-08)
 
 ### Fix
